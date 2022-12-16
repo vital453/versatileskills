@@ -1,0 +1,57 @@
+:root {
+  /* gradient color   */
+  --sky: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+
+  /*      theme font-family   */
+  --Abel: "Abel", cursive;
+  --Anton: "Anton", cursive;
+  --Josefin: "Josefin", cursive;
+  --Lexend: "Lexend", cursive;
+  --Livvic: "Livvic", cursive;
+  --Roboto: "Roboto", cursive;
+}
+
+.accueil2 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 2rem;
+  // background: rgba(0, 0, 0, 0.8);
+  font-size: 2rem;
+  transition: 0.5s;
+  color: #eee;
+  width: 45%;
+}
+.recher {
+  margin-top: -20px;
+  margin-bottom: 10px;
+  margin-left: 30px;
+}
+.liens {
+  font-family: var(--Abel);
+}
+.cardd {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+.name {
+  position: relative;
+  top: -70px;
+  right: 0;
+}
+.profile {
+  margin-top: -60px;
+}
+.verhaut {
+  position: relative;
+  top: -40px;
+  left: 50%;
+  -webkit-box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.3);
+}
+.notfound{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

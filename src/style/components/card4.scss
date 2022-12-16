@@ -1,0 +1,125 @@
+:root {
+    /* gradient color   */
+    --sky: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+  
+    /*      theme font-family   */
+    --Abel: "Abel", cursive;
+    --Anton: "Anton", cursive;
+    --Josefin: "Josefin", cursive;
+    --Lexend: "Lexend", cursive;
+    --Livvic: "Livvic", cursive;
+    --Roboto: "Roboto", cursive;
+    --Source_Sans_Pro: "Source_Sans_Pro", cursive;
+  }
+
+.cardtest1{
+    width: 30%;
+    background-color: rgb(248, 249, 250);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgb(223, 223, 223);
+    box-shadow: 1px 1px 1px #888888;
+    padding: 15px;
+    margin: 8px;
+}
+.cardtest11{
+    width: 100%;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
+    color: rgb(108, 117, 127);
+}
+.cardtest11span{
+    font-family: var(--Source_Sans_Pro);
+    font-size: 18px;
+}
+.cardtest12{
+    width: 100%;
+    justify-content: left;
+    align-items: center;
+    text-align: left;
+    display: flex;
+    margin-bottom: 10px;
+    gap: 5px;
+}
+.cardtest12sous1{
+    width: 75%;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
+}
+.cardtest12sous2{
+    width: 25%;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
+}
+.cardtest12sous11h2{
+    width: 100%;
+    justify-content: left;
+    align-items: left;
+    text-align: left;
+    color: rgb(35, 45, 61);
+    font-family: var(--Source_Sans_Pro);
+    font-size: 25px;
+    margin-top: 15px;
+}
+.cardtest12sous12{
+    width: 100%;
+    text-align: left;
+    justify-content: left;
+    margin-top: 8px;
+}
+.cardtest12sous12span{
+    color: rgb(89, 94, 99);
+    font-family: var(--Source_Sans_Pro);
+    font-weight: bold;
+    font-size: 15px;
+}
+.cardtest12sous12p{
+    color: rgb(100, 108, 116);
+    font-family: var(--Source_Sans_Pro);
+    font-size: 15px;
+}
+.cardtest12sous13p{
+    display: flex;
+    width: 100%;
+    justify-content: left;
+    align-items: center;
+    margin-top: 10px;
+    color: rgb(100, 108, 116);
+    font-family: var(--Source_Sans_Pro);
+    font-size: 15px;
+}
+.cardtest13{
+    width: 100%;
+    align-items: right;
+    justify-content: right;
+    display: flex;
+    gap: 5px;
+    background-color: rgb(240, 241, 242);
+    padding: 5px;
+}
+.cardtest13sous1{
+    padding: 10px;
+    background-color: rgb(32, 201, 151);
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+.cardtest13sous2{
+    padding: 10px;
+    display: flex;
+    background-color: rgb(0, 105, 217);
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+@media (min-width: 212px) and (max-width: 800px){
+    .cardtest1{
+        width: 100%;
+    }  
+}
