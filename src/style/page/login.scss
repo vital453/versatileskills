@@ -1,0 +1,77 @@
+.empty_full{
+    font-size: 1em;
+    color: red;
+    /* margin-top: 10px; */
+    transform-origin: 50% 50%;
+    animation: 1s jaja;
+}
+.failed_full{
+    font-size: 1.2em;
+    color: red;
+    /* margin-top: 10px; */
+    transform-origin: 50% 50%;
+    animation: 1s jaja;
+}
+.eyeview{
+    position: relative;
+    top: -40%;
+    left: 90%;
+    z-index: 100;
+    /* left: 50px; */
+}
+.userExistAlreadyy{
+    /* color: red;
+    font-size: 1.2em;
+    animation: videe 2s forwards; */
+    font-size: 1.2em;
+    color: red;
+    margin-top: 10px;
+    transform-origin: 50% 50%;
+    animation: 1s jaja;
+}
+
+@keyframes jaja {
+    0% {
+      transform: translate(0px, 0px);
+    }
+  
+    10% {
+      transform: translate(-10px, 0px);
+    }
+  
+    20% {
+      transform: translate(10px, 0px);
+    }
+  
+    30% {
+      transform: translate(-10px, 0px);
+    }
+  
+    40% {
+      transform: translate(10px, 0px);
+    }
+  
+    50% {
+      transform: translate(-10px, 0px);
+    }
+  
+    60% {
+      transform: translate(10px, 0px);
+    }
+  
+    70% {
+      transform: translate(-10px, 0px);
+    }
+  
+    80% {
+      transform: translate(10px, 0px);
+    }
+  
+    90% {
+      transform: translate(-10px, 0px);
+    }
+  
+    100% {
+      transform: translate(0px, 0px);
+    }
+}

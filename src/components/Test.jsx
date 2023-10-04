@@ -8,29 +8,29 @@ import React, { useEffect, useState } from "react";
 const Test = () => {
     return ( 
         <>
-        <div class="unslate_co--section" id="services-section">
-          <div class="container">
-            <div class="section-heading-wrap text-center mb-5 ">
-              <h2 class="heading-h2 text-center divider">
-                <span class="gsap-reveal text-black">My Services</span>
+        <div className="unslate_co--section" id="services-section">
+          <div className="container">
+            <div className="section-heading-wrap text-center mb-5 ">
+              <h2 className="heading-h2 text-center divider">
+                <span className="gsap-reveal text-black">Mes Services</span>
               </h2>
-              <span class="gsap-reveal text-black"
+              {/* <span className="gsap-reveal text-black"
                 ><img src="images/divider.png" alt="divider" width="76" className="text-black"
-              /></span>
+              /></span> */}
             </div>
 
-            <div class="row gutter-v3">
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="feature-v1" 
+            <div className="row gutter-v3">
+              <div className="col-md-6 col-lg-4 mb-4">
+                <div className="feature-v1" 
                // data-aos="fade-up" data-aos-delay="0"
                 >
-                  <div class="wrap-icon mb-3">
+                  {/* <div className="wrap-icon mb-3">
                     <img
                       src="images/svg/001-options.svg"
                       alt="Image"
                       width="45"
                     />
-                  </div>
+                  </div> */}
                   <h3>
                     Digital <br />
                     Strategy
@@ -41,13 +41,13 @@ const Test = () => {
                   </p>
                 </div>
               </div>
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="feature-v1" 
+              <div className="col-md-6 col-lg-4 mb-4">
+                <div className="feature-v1" 
                // data-aos="fade-up" data-aos-delay="100"
                 >
-                  <div class="wrap-icon mb-3">
+                  {/* <div className="wrap-icon mb-3">
                     <img src="images/svg/002-chat.svg" alt="Icon" width="45" />
-                  </div>
+                  </div> */}
                   <h3>
                     Web <br />
                     Design
@@ -58,18 +58,18 @@ const Test = () => {
                   </p>
                 </div>
               </div>
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="feature-v1" 
+              <div className="col-md-6 col-lg-4 mb-4">
+                <div className="feature-v1" 
                 //data-aos="fade-up" data-aos-delay="200"
                 >
-                  <div class="wrap-icon mb-3">
+                  {/* <div className="wrap-icon mb-3">
                     <img
                       src="images/svg/003-contact-book.svg"
                       alt="Image"
-                      class="img-fluid"
+                      className="img-fluid"
                       width="45"
                     />
-                  </div>
+                  </div> */}
                   <h3>
                     User <br />
                     Experience
@@ -81,17 +81,17 @@ const Test = () => {
                 </div>
               </div>
 
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="feature-v1" 
+              <div className="col-md-6 col-lg-4 mb-4">
+                <div className="feature-v1" 
                 //data-aos="fade-up" data-aos-delay="0"
                 >
-                  <div class="wrap-icon mb-3">
+                  {/* <div className="wrap-icon mb-3">
                     <img
                       src="images/svg/004-percentage.svg"
                       alt="Image"
                       width="45"
                     />
-                  </div>
+                  </div> */}
                   <h3>
                     Web <br />
                     Development
@@ -102,13 +102,13 @@ const Test = () => {
                   </p>
                 </div>
               </div>
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="feature-v1" 
+              <div className="col-md-6 col-lg-4 mb-4">
+                <div className="feature-v1" 
                 //data-aos="fade-up" data-aos-delay="100"
                 >
-                  <div class="wrap-icon mb-3">
+                  {/* <div className="wrap-icon mb-3">
                     <img src="images/svg/006-goal.svg" alt="Image" width="45" />
-                  </div>
+                  </div> */}
                   <h3>
                     WordPress <br />
                     Solutions
@@ -119,17 +119,17 @@ const Test = () => {
                   </p>
                 </div>
               </div>
-              <div class="col-md-6 col-lg-4 mb-4">
-                <div class="feature-v1" 
+              <div className="col-md-6 col-lg-4 mb-4">
+                <div className="feature-v1" 
                 //data-aos="fade-up" data-aos-delay="200"
                 >
-                  <div class="wrap-icon mb-3">
+                  {/* <div className="wrap-icon mb-3">
                     <img
                       src="images/svg/005-line-chart.svg"
                       alt="Image"
                       width="45"
                     />
-                  </div>
+                  </div> */}
                   <h3>
                     Mobile <br />
                     Applications

@@ -14,23 +14,23 @@ const Commentaire = () => {
       <div className="container">
         <div className="flex flex-col">
           <span className="mb-4 text-2xl ">Laissez nous un commentaire !</span>
-          <div class="mb-3 flex flex-col">
-            <label for="exampleFormControlInput1" class="form-label text-xl ">
+          <div className="mb-3 flex flex-col">
+            <label for="exampleFormControlInput1" className="form-label text-xl ">
               Email address
             </label>
             <input
               type="email"
-              class="border-2 border-color rounded-md w-500 p-3"
+              className="border-2 border-color rounded-md w-500 p-3"
               id="exampleFormControlInput1"
               placeholder="name@example.com"
             />
           </div>
-          <div class="mb-3 flex flex-col">
-            <label for="exampleFormControlTextarea1" class="form-label text-xl">
+          <div className="mb-3 flex flex-col">
+            <label for="exampleFormControlTextarea1" className="form-label text-xl">
               Commentaire
             </label>
             <textarea
-              class="border-2 border-color rounded-md w-500 p-4"
+              className="border-2 border-color rounded-md w-500 p-4"
               id="exampleFormControlTextarea1"
               rows="3"
               placeholder="Message"

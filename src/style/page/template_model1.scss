@@ -71,9 +71,10 @@ a, a:hover {
 }
 
 .unslate_co--footer {
-  /* position: fixed !important; */
+  // position: absolute !important;
+  // bottom: 0px;
   width: 100%;
-  background-color: #fefefe;
+  // background-color: #fefefe;
   color: rgb(44, 43, 43);
   justify-content: center;
   text-align: center;
@@ -2017,24 +2018,24 @@ figure.dotted-bg:before {
   margin-top: -25px;
 }
 
-.form-control {
-  border: none;
-  background: none;
-  padding-left: 0;
-  padding-right: 0;
-  border-radius: 0;
-  color: #fff;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
-}
+// .form-control {
+//   border: none;
+//   background: none;
+//   padding-left: 0;
+//   padding-right: 0;
+//   border-radius: 0;
+//   color: #fff;
+//   border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+// }
 
-.form-control:active,
-.form-control:focus {
-  background: none;
-  outline: none;
-  -webkit-box-shadow: none;
-  box-shadow: none;
-  border-bottom: 1px solid white;
-}
+// .form-control:active,
+// .form-control:focus {
+//   background: none;
+//   outline: none;
+//   -webkit-box-shadow: none;
+//   box-shadow: none;
+//   border-bottom: 1px solid white;
+// }
 
 @media (max-width: 767.98px) {
   .contact-info-v1 {

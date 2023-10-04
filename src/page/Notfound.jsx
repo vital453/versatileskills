@@ -11,10 +11,10 @@ const Notfound = () => {
     return ( 
         <>
        
-          <div class="flex flex-col items-center notfound">
+          <div className="flex flex-col items-center notfound">
           <FaBan className="text-2xl text-icon-color"/>
             {/* <svg
-              class="w-12 h-12 mt-8 text-purple-200"
+              className="w-12 h-12 mt-8 text-purple-200"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
@@ -24,13 +24,13 @@ const Notfound = () => {
                 clip-rule="evenodd"
               ></path>
             </svg> */}
-            <h1 class="text-6xl font-semibold text-gray-700 dark:text-gray-200">
+            <h1 className="text-6xl font-semibold text-gray-700 dark:text-gray-200">
               404
             </h1>
-            <p class="text-gray-700 dark:text-gray-300">
+            <p className="text-gray-700 dark:text-gray-300">
               Page not found. Check the address or &nbsp;
               <Link
-                class="text-purple-600 hover:underline dark:text-purple-300"
+                className="text-purple-600 hover:underline dark:text-purple-300"
                 to={"/"}
               >
                 go Home

@@ -13,8 +13,8 @@ const Footer1 = () => {
           </div>
         </div>
         <hr className="bg-black" />
-        <div className="container-fluid items-center flex justify-between">
-          <div className="flex items-center">
+        <div className="container-fluid items-center flex flex-wrap justify-center lg:justify-between">
+          <div className="flex items-center justify-center flex-wrap">
             <div className="cursor-pointer">
               <span className="text-black font-semibold ml-1 text-14">
                 À propos
@@ -36,7 +36,7 @@ const Footer1 = () => {
               </span>
             </div>
           </div>
-          <div className="flex items-center">
+          <div className="flex flex-wrap items-center">
             <div className="ml-2 cursor-pointer">
               <span className="text-black font-semibold ml-1 text-14">
                 Confidentialité

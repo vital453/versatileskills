@@ -13,20 +13,21 @@
 
 .accueil2 {
   position: absolute;
-  top: 50%;
+  top: 40%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -40%);
   padding: 2rem;
   // background: rgba(0, 0, 0, 0.8);
   font-size: 2rem;
   transition: 0.5s;
   color: #eee;
-  width: 45%;
+  width: 85%;
+  // border: 1px solid red;
 }
 .recher {
-  margin-top: -20px;
+  // margin-top: -20px;
   margin-bottom: 10px;
-  margin-left: 30px;
+  // margin-left: 30px;
 }
 .liens {
   font-family: var(--Abel);
@@ -45,7 +46,7 @@
 .verhaut {
   position: relative;
   top: -40px;
-  left: 50%;
+  left: 45%;
   -webkit-box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.3);
   box-shadow: 0 10px 10px 0px rgba(0, 0, 0, 0.3);
 }

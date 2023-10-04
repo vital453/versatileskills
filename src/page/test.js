@@ -8,16 +8,26 @@ const path = require("path");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
-// const bcrypt = require('bcrypt');
+const fs = require("fs");
 const saltRounds = 10;
-
 const jwt = require("jsonwebtoken");
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
     cb(null, "./uploads");
   },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
+  filename: (req, file, cb) => {
+    console.log(file);
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+const storagelvc = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./lvcpic");
+  },
+  filename: (req, file, cb) => {
+    console.log(file);
+    cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -25,8 +35,8 @@ app.use(cors({ header: { "Access-Control-Allow-Origin": "*" } }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyparser.urlencoded({ extended: true }));
-app.use(bodyparser.json());
 //{origin: "http://localhost:8100"}
+app.use(bodyparser.json());
 
 app.use(
   session({
@@ -46,10 +56,10 @@ app.listen("3004", () => {
 
 // mysql database connection
 const db = mysql.createConnection({
-  user: "benixags_vital14",
+  user: "verswllw_vital",
   host: "localhost",
-  password: "fnW*,jE_%hXl",
-  database: "benixags_shop",
+  password: ".(*xg;MVNu^^",
+  database: "verswllw_skills",
 });
 
 // check db connection
@@ -61,160 +71,133 @@ db.connect((err) => {
 });
 
 app.get("/", (req, res) => {
+  // check db connection
   res.json({ message: "OKAY" });
-  console.log("server is running....");
 });
+
+//liste de profession
+app.get("/infos", (req, res) => {
+  //res.send("offset is set to " + off +" "+ lim);
+  db.query("SELECT * FROM profession", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+//liste des profiles
+app.get("/infosprofile", (req, res) => {
+  //  SELECT * FROM `profile` WHERE `username` <> '' and `a_propos_de_moi` <> '';
+  db.query(
+    "SELECT a_propos_de_moi,adresse,cost_job,creation_date,email,id,nom,number,profession,professionId,profileImg,update_date,username,ville FROM profile WHERE username <> '' and a_propos_de_moi <> ''",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+//aleatoire profiles
+app.get("/aleatoire_infosprofile", (req, res) => {
+  //  SELECT * FROM `profile` WHERE `username` <> '' and `a_propos_de_moi` <> '';
+  db.query(
+    "SELECT a_propos_de_moi,adresse,cost_job,creation_date,email,id,nom,number,profession,professionId,profileImg,update_date,username,ville FROM profile WHERE username <> '' and a_propos_de_moi <> '' order by rand() limit 1",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
 //registration
 app.post("/register", (req, res) => {
-  const username = req.body.username;
   const password = req.body.password;
-  const type = req.body.type;
-  if (type == "sellers") {
-    db.query(
-      "SELECT * FROM sellers WHERE username = ?",
-      username,
-      (err, result) => {
-        // if(err){
-        //   console.log(err);
-        //   res.send({ err: err});
+  const profession = req.body.profession;
+  const professionId = req.body.professionId;
+  const email = req.body.email;
+  const ville = req.body.ville;
+  db.query("SELECT * FROM profile WHERE email = ?", email, (err, result) => {
+    if (result.length > 0) {
+      res.json({
+        regist: false,
+        message: "Ce utilisateur existe déjà !",
+      });
+    } else {
+      bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err) {
+          console.log(err);
+        }
 
-        // }
-        //   res.send(result);
-        if (result.length > 0) {
-          res.json({
-            regist: false,
-            message: "Ce nom d'utilisateur existe déjà !",
-          });
-        } else {
-          bcrypt.hash(password, saltRounds, (err, hash) => {
+        db.query(
+          "INSERT INTO profile (email, profession, professionId, password, ville) VALUES (?,?,?,?,?)",
+          [email, profession, professionId, hash, ville],
+          (err, result) => {
             if (err) {
               console.log(err);
+            } else {
+              res.json({
+                regist: true,
+                message: "Création réussie!",
+              });
+              //  res.send("Values Inserted");
             }
-
-            db.query(
-              "INSERT INTO sellers (username, password) VALUES (?,?)",
-              [username, hash],
-              (err, result) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  res.send("Values Inserted");
-                }
-              }
-            );
-          });
-        }
-      }
-    );
-  } else if (type == "clients") {
-    db.query(
-      "SELECT * FROM users WHERE username = ?",
-      username,
-      (err, result) => {
-        // if(err){
-        //   console.log(err);
-        //   res.send({ err: err});
-
-        // }
-        //   res.send(result);
-        if (result.length > 0) {
-          res.json({
-            regist: false,
-            message: "Ce nom d'utilisateur existe déjà !",
-          });
-        } else {
-          bcrypt.hash(password, saltRounds, (err, hash) => {
-            if (err) {
-              console.log(err);
-            }
-
-            db.query(
-              "INSERT INTO users (username, password) VALUES (?,?)",
-              [username, hash],
-              (err, result) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  res.send("Values Inserted");
-                }
-              }
-            );
-          });
-        }
-      }
-    );
-  }
+          }
+        );
+      });
+    }
+  });
 });
+//login
 app.post("/login", (req, res) => {
-  const username = req.body.username;
+  const email = req.body.email;
   const password = req.body.password;
-  const type = req.body.type;
 
-  if (type == "sellers") {
-    db.query(
-      "SELECT * FROM sellers WHERE username = ?",
-      username,
-      (err, result) => {
-        if (err) {
-          //   console.log(err);
-          res.send({ err: err });
-        }
-        //   res.send(result);
-        if (result.length > 0) {
-          bcrypt.compare(password, result[0].password, (error, response) => {
-            if (response) {
-              const id = result[0].id;
-              const token = jwt.sign({ id }, "jwtSecret", {
-                expiresIn: 120,
-              });
-              req.session.user = result;
+  db.query("SELECT * FROM profile WHERE email = ?", email, (err, result) => {
+    if (err) {
+      //   console.log(err);
+      res.send({ err: err });
+    }
+    //   res.send(result);
+    if (result.length > 0) {
+      bcrypt.compare(password, result[0].password, (error, response) => {
+        if (response) {
+          const id = result[0].id;
+          const token = jwt.sign(
+            { id },
+            "jwtSecret"
+            /*, {
+                expiresIn: 6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+              }*/
+          );
+          req.session.user = result;
 
-              // res.send(result);
-              res.json({ auth: true, token: token, result: result });
-            } else {
-              // res.send({ message: "Mauvaise combinaison"})
-              res.json({ auth: false, message: "Mauvaise combinaison" });
-            }
+          // res.send(result);
+          res.json({
+            auth: true,
+            token: token,
+            id: result[0].id,
+            email: result[0].email,
+            profileImg: result[0].profileImg,
+            professionId: result[0].professionId,
+            nom: result[0].nom,
           });
         } else {
-          res.json({ auth: false, message: "L'utilisateur n'existe pas" });
-          // res.send({ message: "L'utilisateur n'existe pas"});
+          // res.send({ message: "Mauvaise combinaison"})
+          res.json({ auth: false, message: "Mauvaise combinaison" });
         }
-      }
-    );
-  } else if (type == "clients") {
-    db.query(
-      "SELECT * FROM users WHERE username = ?",
-      username,
-      (err, result) => {
-        if (err) {
-          //   console.log(err);
-          res.send({ err: err });
-        }
-        //   res.send(result);
-        if (result.length > 0) {
-          bcrypt.compare(password, result[0].password, (error, response) => {
-            if (response) {
-              const id = result[0].id;
-              const token = jwt.sign({ id }, "jwtSecret", {
-                expiresIn: 120,
-              });
-              req.session.user = result;
-
-              // res.send(result);
-              res.json({ auth: true, token: token, result: result });
-            } else {
-              // res.send({ message: "Mauvaise combinaison"})
-              res.json({ auth: false, message: "Mauvaise combinaison" });
-            }
-          });
-        } else {
-          res.json({ auth: false, message: "L'utilisateur n'existe pas" });
-          // res.send({ message: "L'utilisateur n'existe pas"});
-        }
-      }
-    );
-  }
+      });
+    } else {
+      res.json({ auth: false, message: "L'utilisateur n'existe pas" });
+      // res.send({ message: "L'utilisateur n'existe pas"});
+    }
+  });
 });
 
 const verifyJWT = (req, res, next) => {
@@ -233,404 +216,131 @@ const verifyJWT = (req, res, next) => {
     });
   }
 };
-
+//vérifier le token
 app.get("/isUserAuth", verifyJWT, (req, res) => {
   res.send("Vous etes authentifier");
 });
 
 app.put("/changepassword", async (req, res) => {
-  const { oldPassword, newPassword, username,type } = req.body;
+  const { oldPassword, newPassword, username, type } = req.body;
 
-if (type == "sellers") {
-      db.query(
-    "SELECT * FROM sellers WHERE username = ?",
-    username,
-    (err, result) => {
-      if (err) {
-        //   console.log(err);
-        res.send({ err: err });
-      }
-      //   res.send(result);
-      if (result.length > 0) {
-        bcrypt.compare(oldPassword, result[0].password).then(async (match) => {
-          if (!match) {
-            res.json({ error: "Wrong Password Entered!" });
-          } else {
-            bcrypt.hash(newPassword, 10).then((hash) => {
-              db.query(
-                "UPDATE sellers SET password = ? WHERE username = ?",
-                [hash, username],
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    // console.log('succes');
-                    // res.send(result);
-                    res.json("SUCCESS");
-                  }
-                }
-              );
+  if (type == "admin") {
+    db.query(
+      "SELECT * FROM sellers WHERE username = ?",
+      username,
+      (err, result) => {
+        if (err) {
+          //   console.log(err);
+          res.send({ err: err });
+        }
+        //   res.send(result);
+        if (result.length > 0) {
+          bcrypt
+            .compare(oldPassword, result[0].password)
+            .then(async (match) => {
+              if (!match) {
+                res.json({ error: "Wrong Password Entered!" });
+              } else {
+                bcrypt.hash(newPassword, 10).then((hash) => {
+                  db.query(
+                    "UPDATE sellers SET password = ? WHERE username = ?",
+                    [hash, username],
+                    (err, result) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        // console.log('succes');
+                        // res.send(result);
+                        res.json("SUCCESS");
+                      }
+                    }
+                  );
+                });
+              }
             });
-          }
-        });
+        }
+        //   else {
+        //       res.json({auth: false, message: "L'utilisateur n'existe pas" });
+        //       // res.send({ message: "L'utilisateur n'existe pas"});
+        //   }
       }
-      //   else {
-      //       res.json({auth: false, message: "L'utilisateur n'existe pas" });
-      //       // res.send({ message: "L'utilisateur n'existe pas"});
-      //   }
-    }
-  );
-}else if (type == "clients") {
-      db.query(
-    "SELECT * FROM users WHERE username = ?",
-    username,
-    (err, result) => {
-      if (err) {
-        //   console.log(err);
-        res.send({ err: err });
-      }
-      //   res.send(result);
-      if (result.length > 0) {
-        bcrypt.compare(oldPassword, result[0].password).then(async (match) => {
-          if (!match) {
-            res.json({ error: "Wrong Password Entered!" });
-          } else {
-            bcrypt.hash(newPassword, 10).then((hash) => {
-              db.query(
-                "UPDATE users SET password = ? WHERE username = ?",
-                [hash, username],
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    // console.log('succes');
-                    // res.send(result);
-                    res.json("SUCCESS");
-                  }
-                }
-              );
+    );
+  } else if (type == "clients") {
+    db.query(
+      "SELECT * FROM users WHERE username = ?",
+      username,
+      (err, result) => {
+        if (err) {
+          //   console.log(err);
+          res.send({ err: err });
+        }
+        //   res.send(result);
+        if (result.length > 0) {
+          bcrypt
+            .compare(oldPassword, result[0].password)
+            .then(async (match) => {
+              if (!match) {
+                res.json({ error: "Wrong Password Entered!" });
+              } else {
+                bcrypt.hash(newPassword, 10).then((hash) => {
+                  db.query(
+                    "UPDATE users SET password = ? WHERE username = ?",
+                    [hash, username],
+                    (err, result) => {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        // console.log('succes');
+                        // res.send(result);
+                        res.json("SUCCESS");
+                      }
+                    }
+                  );
+                });
+              }
             });
-          }
-        });
+        }
+        //   else {
+        //       res.json({auth: false, message: "L'utilisateur n'existe pas" });
+        //       // res.send({ message: "L'utilisateur n'existe pas"});
+        //   }
       }
-      //   else {
-      //       res.json({auth: false, message: "L'utilisateur n'existe pas" });
-      //       // res.send({ message: "L'utilisateur n'existe pas"});
-      //   }
-    }
-  );
-}
-});
-
-//Liste categories
-app.get("/affichecategory", (req, res) => {
-  db.query("SELECT * FROM category", (err, result) => {
-    {
-      /* -la bibliothèque axios permet d'envoyer les requêtes de recherche sql dans la base de données grâce aux fonctions post get put  */
-    }
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//Liste libellé statut
-app.get("/affichelibstat", (req, res) => {
-  db.query("SELECT * FROM statuscommande", (err, result) => {
-    {
-      /* -la bibliothèque axios permet d'envoyer les requêtes de recherche sql dans la base de données grâce aux fonctions post get put  */
-    }
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//récupération d'une category
-app.post("/recupcat", (req, res) => {
-  const id = req.body.id;
-  db.query("SELECT * FROM category  WHERE id =?", id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.get("/supprpan", (req, res) => {
-  db.query("DELETE FROM panier where 1=1 ", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.delete("/deletepan/:ide", (req, res) => {
-  const id = req.params.ide;
-  db.query("DELETE FROM panier WHERE product_id = ?", id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.put("/majpan", (req, res) => {
-  const product_quantity = req.body.product_quantity;
-  const product_id = req.body.product_id;
-  const total_price = req.body.price * req.body.product_quantity;
-  db.query(
-    "UPDATE panier SET product_quantity = ?, total_price= ? WHERE product_id = ? ",
-    [product_quantity, total_price, product_id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//afficher le panier
-app.get("/affichepanier", (req, res) => {
-  db.query("SELECT * FROM panier", (err, result) => {
-    {
-      /* -la bibliothèque axios permet d'envoyer les requêtes de recherche sql dans la base de données grâce aux fonctions post get put  */
-    }
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//ajouter au panier
-
-app.post("/ajoutpanier", (req, res) => {
-  {
-    /* -Pour l'exécution des requêtes on a besoin d'initialiser une connexion à la bd et qui contiendra les identifiants de connexions   */
+    );
   }
-  const product_id = req.body.product_id;
-  const unite_price = req.body.unite_price;
-  const product_quantity = req.body.product_quantity;
-  const total_price = req.body.total_price;
-  const product_name = req.body.product_name;
-  const stock = req.body.stock;
-
-  db.query(
-    "INSERT INTO panier (product_id, product_name, unite_price, product_quantity, total_price,stock) VALUES (?,?,?,?,?,?)",
-    [
-      product_id,
-      product_name,
-      unite_price,
-      product_quantity,
-      total_price,
-      stock,
-    ],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("suc");
-      }
-    }
-  );
 });
+//données d'un profile
+app.post("/profileInfos", (req, res) => {
+  const id = req.body.userId;
 
-// créer une commande
-app.post("/ajoutcommande", (req, res) => {
-  const totalquant = req.body.totalquant;
-  const totalprix = req.body.totalprix;
-  const invoice = req.body.invoice;
-  db.query(
-    "INSERT INTO command_validation (invoice, total_quantity, total_price) VALUES (?,?,?)",
-    [invoice, totalquant, totalprix],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("suc");
-      }
-    }
-  );
-});
-
-app.post("/ajoutapprov", (req, res) => {
-  const totalquant = req.body.totalquant;
-  const totalprix = req.body.totalprix;
-  const invoice = req.body.invoice;
-  db.query(
-    "INSERT INTO approvisionnement_validation (invoice, total_quantity, total_price) VALUES (?,?,?)",
-    [invoice, totalquant, totalprix],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("suc");
-      }
-    }
-  );
-});
-
-// créer liste commande
-app.post("/ajoutcomList", (req, res) => {
-  let numfin = 0;
-  let newnum = 0;
-  const panier = req.body.panier;
-  let id = 0;
-  let taillecom = [];
-  const tail = req.body.tail;
-  const whatsapp = req.body.whatsapp;
-  const picture1 = "uploads/1657538991.jpg";
-
-  db.query("SELECT * FROM command_validation", (err, result) => {
+  db.query("SELECT * FROM profile WHERE id = ?", id, (err, result) => {
     if (err) {
       console.log(err);
     } else {
-      if (result) {
-        db.query(
-          "SELECT MAX(id) AS TOTA FROM command_validation",
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              id = result[0].TOTA;
-              db.query(
-                "SELECT * FROM command_validation WHERE id = ?",
-                id,
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    numfin = parseInt(result[0].invoice.slice(5));
-                    newnum = numfin + 1;
-                    invoice = `FAB00${newnum}`;
-                    for (var i = 0; i < tail; i++) {
-                      db.query(
-                        "INSERT INTO commands (product_quantity, total_price , unite_price , product_name,product_id, invoice, whatsapp,picture) VALUES (?,?,?,?,?,?,?,?)",
-                        [
-                          panier[i].product_quantity,
-                          panier[i].total_price,
-                          panier[i].unite_price,
-                          panier[i].product_name,
-                          panier[i].product_id,
-                          invoice,
-                          whatsapp,
-                          picture1,
-                        ],
-                        (err, result) => {
-                          if (err) {
-                            console.log(err);
-                          } else {
-                            res.send(invoice);
-                          }
-                        }
-                      );
-                    }
-                  }
-                }
-              );
-            }
-          }
-        );
-      }
+      //res.send(result[0]);
+      res.json({
+        a_propos_de_moi: result[0].a_propos_de_moi,
+        adresse: result[0].adresse,
+        cost_job: result[0].cost_job,
+        creation_date: result[0].creation_date,
+        email: result[0].email,
+        id: result[0].id,
+        nom: result[0].nom,
+        number: result[0].number,
+        profession: result[0].profession,
+        professionId: result[0].professionId,
+        profileImg: result[0].profileImg,
+        update_date: result[0].update_date,
+        username: result[0].username,
+        ville: result[0].ville,
+      });
     }
   });
 });
+//services offert par un profile
+app.post("/profileServices", (req, res) => {
+  const id = req.body.userId;
 
-app.post("/ajoutapprovList", (req, res) => {
-  let numfin = 0;
-  let newnum = 0;
-  const panier = req.body.approv;
-  let id = 0;
-  const tail = req.body.tail;
-  let invoice = 0;
-  db.query("SELECT * FROM approvisionnement_validation", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      if (result) {
-        db.query(
-          "SELECT MAX(id) AS TOTA FROM approvisionnement_validation",
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              id = result[0].TOTA;
-              db.query(
-                "SELECT * FROM approvisionnement_validation WHERE id = ?",
-                id,
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    numfin = parseInt(result[0].invoice.slice(5));
-                    newnum = numfin + 1;
-                    invoice = `FAB00${newnum}`;
-                    for (var i = 0; i < tail; i++) {
-                      db.query(
-                        "INSERT INTO approvisionnement (stock_appro, total_price , unite_price , product_name,product_id, invoice, stock_preview,picture) VALUES (?,?,?,?,?,?,?,?)",
-                        [
-                          panier[i].stock_appro,
-                          panier[i].total_price,
-                          panier[i].unite_price,
-                          panier[i].product_name,
-                          panier[i].product_id,
-                          invoice,
-                          panier[i].stock_preview,
-                          panier[i].picture,
-                        ],
-                        (err, result) => {
-                          if (err) {
-                            console.log(err);
-                          } else {
-                            res.send(invoice);
-                          }
-                        }
-                      );
-                    }
-                  }
-                }
-              );
-            }
-          }
-        );
-      }
-    }
-  });
-});
-
-app.post("/reclusia", (req, res) => {
-  const pan = req.body.panier;
-
-  db.query(
-    "SELECT * FROM products  WHERE id =?",
-    panier[0].product_id,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//récupération d'un article
-app.post("/recupart", (req, res) => {
-  const id = req.body.id;
-
-  db.query("SELECT * FROM products  WHERE id =?", id, (err, result) => {
+  db.query("SELECT * FROM services WHERE id_profile = ?", id, (err, result) => {
     if (err) {
       console.log(err);
     } else {
@@ -638,39 +348,12 @@ app.post("/recupart", (req, res) => {
     }
   });
 });
-//test
-app.post("/test1", (req, res) => {
-  const id = req.body.id;
-
-  res.send(id + "");
-});
-
-//liste des articles
-app.get("/afficheart", (req, res) => {
-  db.query("SELECT * FROM products", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-//liste des articles par ordre croissant
-app.get("/afficheartcroiss", (req, res) => {
-  db.query("SELECT * FROM products ORDER BY name ASC", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//`SELECT * FROM todotbl ORDER BY id DESC LIMIT 10`
-
-app.get("/arrivage", (req, res) => {
+//profile similaires
+app.post("/profileSimilar", (req, res) => {
+  const professionId = req.body.professionId;
   db.query(
-    `SELECT * FROM products ORDER BY id DESC LIMIT 10`,
+    "SELECT id, email, username, profileImg, ville, professionId FROM profile WHERE professionId = ? and username <> '' and a_propos_de_moi <> ''",
+    professionId,
     (err, result) => {
       if (err) {
         console.log(err);
@@ -681,145 +364,9 @@ app.get("/arrivage", (req, res) => {
   );
 });
 
-app.post("/recent", (req, res) => {
-  const dateact = req.body.dateact;
-  db.query(
-    `SELECT * FROM products WHERE creation_date >= ?`,
-    dateact,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.get("/populaire", (req, res) => {
-  db.query(`SELECT * FROM products WHERE like_number >= 50`, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.get("/datenow", (req, res) => {
-  db.query(`SELECT NOW()`, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result + " ");
-    }
-  });
-});
-
-//liste des articles par categorie
-app.post("/articlecateg", (req, res) => {
-  const idcat = req.body.idcat;
-  db.query(
-    "SELECT * FROM products  WHERE category_id =?",
-    idcat,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste des commandes
-app.get("/affichecommande", (req, res) => {
-  db.query("SELECT * FROM command_validation", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//liste des approvisionnements
-app.get("/afficheapprov", (req, res) => {
-  db.query("SELECT * FROM approvisionnement_validation", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//liste des commandes validées
-app.get("/affichecomv", (req, res) => {
-  db.query(
-    "SELECT * FROM command_validation WHERE statut =1 ",
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste articles par commande
-app.post("/afficheartcom", (req, res) => {
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT * FROM commands WHERE invoice =? ",
-    invoice,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste articles par approvisionnement
-app.post("/afficheartapprov", (req, res) => {
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT * FROM approvisionnement WHERE invoice =? ",
-    invoice,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//mise à jour satut
-app.post("/majstatut", (req, res) => {
-  const invoice = req.body.invoice;
-  const stat = req.body.stat;
-  db.query(
-    "UPDATE command_validation SET status_id_command = ? WHERE invoice =? ",
-    [stat, invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("success");
-      }
-    }
-  );
-});
-
-app.put("/imga/:id/:stat", async (req, res) => {
+app.put("/majimgprofil/:id", async (req, res) => {
   const id = req.params.id;
-  const stat = req.params.stat;
+  // const stat = req.params.stat;
   // 'avatar' is the name of our file input field in the HTML form
   let upload = multer({ storage: storage }).single("avatar");
 
@@ -834,40 +381,51 @@ app.put("/imga/:id/:stat", async (req, res) => {
     } else if (err) {
       return res.send(err);
     }
-    let classifiedsadd = { picture2: req.file.filename };
-    if (stat == 1) {
-      classifiedsadd = {
-        picture1: "uploads/" + req.file.filename,
-      };
-    }
-    if (stat == 2) {
-      classifiedsadd = {
-        picture2: "uploads/" + req.file.filename,
-      };
-    }
-    if (stat == 3) {
-      classifiedsadd = {
-        picture3: "uploads/" + req.file.filename,
-      };
-    }
-    if (stat == 4) {
-      classifiedsadd = {
-        picture4: "uploads/" + req.file.filename,
-      };
-    }
-    if (stat == 5) {
-      classifiedsadd = {
-        video: "uploads/" + req.file.filename,
-      };
-    }
+    let classifiedsadd = { profileImg: req.file.filename };
 
     //	const sql = "UPDATE products SET picture2 = ? WHERE id = 47";
-    const sql = "UPDATE products SET ? WHERE id = ?";
+    const sql = "UPDATE profile SET ? WHERE id = ?";
     db.query(sql, [classifiedsadd, id], (err, results) => {
       if (err) {
         res.send(err);
       } else {
         res.json({ success: 1 });
+        //  res.send("suc");
+      }
+      //	res.json({ success: 1 }) ;
+      //   res.send(id+"");
+    });
+  });
+
+  //res.send(id+"");
+});
+app.put("/addimgprofil/:id", async (req, res) => {
+  const id = req.params.id;
+  // const stat = req.params.stat;
+  // 'avatar' is the name of our file input field in the HTML form
+  let upload = multer({ storage: storage }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = { profileImg: "uploads/" + req.file.filename };
+
+    //	const sql = "UPDATE products SET picture2 = ? WHERE id = 47";
+    const sql = "INSERT INTO galerie (id_profile, image) VALUES (?,?)";
+    db.query(sql, [id, "uploads/" + req.file.filename], (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.json({ success: 1 });
+        //  res.send("suc");
       }
       //	res.json({ success: 1 }) ;
       //   res.send(id+"");
@@ -877,1623 +435,2343 @@ app.put("/imga/:id/:stat", async (req, res) => {
   //res.send(id+"");
 });
 
-app.post("/newart", async (req, res) => {
-  const nom = req.body.nom;
-  const prix = req.body.prix;
-  const reduc = req.body.reduc;
-  const description = req.body.descript;
-  const stock = req.body.stock;
-  const seller_id = req.body.seller_id;
-  const category = req.body.category;
-  const like = req.body.like;
-  const prixachat = req.body.prixachat;
+// suppression img galerie profile
+app.post("/deleteimg_galerie", (req, res) => {
+  const id = req.body.id;
+  const nameimg = req.body.nameimg;
+  db.query("DELETE FROM galerie WHERE id = ?", id, (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      //supprimer img
+      fs.unlink(nameimg, (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        } else {
+          res.send("succes");
+        }
+
+        //file removed
+      });
+    }
+  });
+  //res.send(" "+id+"fgf");
+});
+//recupe all image from userprofile
+app.post("/getprofileimage", (req, res) => {
+  const id = req.body.id;
+
+  db.query("SELECT * FROM galerie WHERE id_profile = ?", id, (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+//maj a propos
+app.put("/aboutUpdate/:id/:about", async (req, res) => {
+  const id = req.params.id;
+  const a_propos_de_moi = req.params.about;
+
   db.query(
-    "INSERT INTO products (name,price,description,discount,seller_id,stock, category_id, like_number, cost) VALUES (?,?,?,?,?,?,?,?,?)",
-    [
-      nom,
-      prix,
-      description,
-      reduc,
-      seller_id,
-      stock,
-      category,
-      like,
-      prixachat,
-    ],
-    (err, result) => {
+    "UPDATE profile SET a_propos_de_moi = ? WHERE id = ?",
+    [a_propos_de_moi, id],
+    (err, results) => {
       if (err) {
-        console.log(err);
+        res.send(err);
       } else {
-        //res.send("suc");
-        db.query("SELECT  MAX(id) AS tota FROM products ", (err, result) => {
+        //res.json({ success: 1 });
+        db.query("SELECT * FROM profile WHERE id = ?", id, (err, result) => {
+          if (err) {
+            console.log(err);
+          } else {
+            //res.send(result[0]);
+            res.json({
+              a_propos_de_moi: result[0].a_propos_de_moi,
+              adresse: result[0].adresse,
+              cost_job: result[0].cost_job,
+              creation_date: result[0].creation_date,
+              email: result[0].email,
+              id: result[0].id,
+              nom: result[0].nom,
+              number: result[0].number,
+              profession: result[0].profession,
+              professionId: result[0].professionId,
+              profileImg: result[0].profileImg,
+              update_date: result[0].update_date,
+              username: result[0].username,
+              ville: result[0].ville,
+              success: 1,
+            });
+          }
+        });
+      }
+    }
+  );
+});
+//maj profile
+app.put(
+  "/profileUpdate/:id/:nom/:profession/:ProfessionId/:numero/:adresse",
+  async (req, res) => {
+    const id = req.params.id;
+    const nom = req.params.nom;
+    const profession = req.params.profession;
+    const professionId = req.params.ProfessionId;
+    const number = req.params.numero;
+    const adresse = req.params.adresse;
+
+    db.query(
+      "UPDATE profile SET nom = ?, profession = ?, professionId = ?, number = ?, adresse = ? WHERE id = ?",
+      [nom, profession, professionId, number, adresse, id],
+      (err, results) => {
+        if (err) {
+          res.send(err);
+        } else {
+          //res.json({ success: 1 });
+          db.query("SELECT * FROM profile WHERE id = ?", id, (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              //res.send(result[0]);
+              res.json({
+                a_propos_de_moi: result[0].a_propos_de_moi,
+                adresse: result[0].adresse,
+                cost_job: result[0].cost_job,
+                creation_date: result[0].creation_date,
+                email: result[0].email,
+                id: result[0].id,
+                nom: result[0].nom,
+                number: result[0].number,
+                profession: result[0].profession,
+                professionId: result[0].professionId,
+                profileImg: result[0].profileImg,
+                update_date: result[0].update_date,
+                username: result[0].username,
+                ville: result[0].ville,
+                success: 1,
+              });
+            }
+          });
+        }
+      }
+    );
+  }
+);
+//ajout service
+app.post("/addService", (req, res) => {
+  const id_profile = req.body.idprofile;
+  const nom = req.body.nom;
+  const description = req.body.descriptio;
+
+  db.query(
+    "INSERT INTO services (nom, description, id_profile) VALUES (?,?,?)",
+    [nom, description, id_profile],
+    (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        //res.json({ success: 1 });
+        db.query(
+          "SELECT * FROM services WHERE id_profile = ?",
+          id_profile,
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              res.send(result);
+            }
+          }
+        );
+      }
+    }
+  );
+});
+//editer service
+app.put("/editService/:id/:nom/:descriptio/:idprofile", async (req, res) => {
+  const id = req.params.id;
+  const nom = req.params.nom;
+  const description = req.params.descriptio;
+  const id_profile = req.params.idprofile;
+
+  db.query(
+    "UPDATE services SET nom = ?, description = ? WHERE id = ?",
+    [nom, description, id],
+    (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        //res.json({ success: 1 });
+        db.query(
+          "SELECT * FROM services WHERE id_profile = ?",
+          id_profile,
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              res.send(result);
+            }
+          }
+        );
+      }
+    }
+  );
+});
+//suppression service
+app.post("/deleteService", (req, res) => {
+  const id = req.body.id;
+  const id_profile = req.body.userId;
+
+  db.query("DELETE FROM services WHERE id = ?", id, (err, results) => {
+    if (err) {
+      res.send(err);
+    } else {
+      //res.json({ success: 1 });
+      db.query(
+        "SELECT * FROM services WHERE id_profile = ?",
+        id_profile,
+        (err, result) => {
           if (err) {
             console.log(err);
           } else {
             res.send(result);
           }
+        }
+      );
+    }
+  });
+});
+//récupérer la liste des profession soumises
+app.get("/get_temp_profession", (req, res) => {
+  db.query("SELECT * FROM temp_profession", (err, result) => {
+    if (err) {
+      console.log(err);
+      // res.send({ err: err });
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+//ajouter une nouvelle profession
+app.post("/addtempprofe", (req, res) => {
+  const nom = req.body.nom;
+  const description = req.body.description;
+
+  db.query(
+    "INSERT INTO temp_profession (nom, description) VALUES (?,?)",
+    [nom, description],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("Création réussie !");
+        //  res.send("Values Inserted");
+      }
+    }
+  );
+});
+/***************************************************************  LVC test ******************************************************************************************************** */
+//registration lvc admin
+app.post("/registerLvcAdmin", (req, res) => {
+  const password = req.body.password;
+  const username = req.body.username;
+
+  db.query(
+    "SELECT * FROM lvc_admin WHERE username = ?",
+    username,
+    (err, result) => {
+      if (result.length > 0) {
+        res.json({
+          regist: false,
+          message: "Ce utilisateur existe déjà !",
+        });
+      } else {
+        bcrypt.hash(password, saltRounds, (err, hash) => {
+          if (err) {
+            console.log(err);
+          }
+
+          db.query(
+            "INSERT INTO lvc_admin (username, password) VALUES (?,?)",
+            [username, hash],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              } else {
+                res.json({
+                  regist: true,
+                  message: "Création réussie!",
+                });
+                //  res.send("Values Inserted");
+              }
+            }
+          );
         });
       }
     }
   );
 });
+//login lvc admin
+app.post("/loginLvcAdmin", (req, res) => {
+  const username = req.body.username;
+  const password = req.body.password;
 
-app.post("/editerart", async (req, res) => {
-  const nom = req.body.nom;
-  const prix = req.body.prix;
-  const reduc = req.body.reduc;
-  const description = req.body.descript;
-  const stock = req.body.stock;
-  const seller_id = req.body.seller_id;
-  const category = req.body.category;
-  const like = req.body.like;
-  const prixachat = req.body.prixachat;
-  const id = req.body.id;
   db.query(
-    "UPDATE products SET name=?,price=?,description=?,discount=?,seller_id=?,stock=?, category_id=?, like_number=?, cost=?  WHERE id = ?",
-    [
-      nom,
-      prix,
-      description,
-      reduc,
-      seller_id,
-      stock,
-      category,
-      like,
-      prixachat,
-      id,
-    ],
+    "SELECT * FROM lvc_admin WHERE username = ?",
+    username,
     (err, result) => {
       if (err) {
-        console.log(err);
+        //   console.log(err);
+        res.send({ err: err });
+      }
+      //   res.send(result);
+      if (result.length > 0) {
+        bcrypt.compare(password, result[0].password, (error, response) => {
+          if (response) {
+            const id = result[0].id;
+            const token = jwt.sign(
+              { id },
+              "jwtSecret"
+              /*, {
+                expiresIn: 6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+              }*/
+            );
+            req.session.user = result;
+
+            // res.send(result);
+            res.json({
+              auth: true,
+              token: token,
+              id: result[0].id,
+              username: result[0].username,
+              profil_img: result[0].profil_img,
+            });
+          } else {
+            // res.send({ message: "Mauvaise combinaison"})
+            res.json({ auth: false, message: "Mauvaise combinaison" });
+          }
+        });
       } else {
-        res.send("suc");
+        res.json({ auth: false, message: "L'utilisateur n'existe pas" });
+        // res.send({ message: "L'utilisateur n'existe pas"});
       }
     }
   );
 });
 
-app.post("/supprart", (req, res) => {
-  const id = req.body.id;
-  db.query("DELETE FROM products WHERE id = ?", id, (err, result) => {
+const verifyJWTLVC = (req, res, next) => {
+  const token = req.headers["x-access-token"];
+
+  if (!token) {
+    res.send("Nous avons besoin du token, donnez le nous prochainement!");
+  } else {
+    jwt.verify(token, "jwtSecret", (err, decoded) => {
+      if (err) {
+        res.json({ auth: false, message: "Connexion expirée" });
+      } else {
+        req.userId = decoded.id;
+        next();
+      }
+    });
+  }
+};
+//vérifier le token
+app.get("/isUserAuthLVC", verifyJWTLVC, (req, res) => {
+  res.send("Vous etes authentifier");
+});
+
+//registration lvc client
+app.post("/registerLvcClient", (req, res) => {
+  const nom = req.body.nom;
+  const prenom = req.body.prenom;
+  const numero = req.body.numero;
+  const whatsapp = req.body.whatsapp;
+  const privilege = req.body.privilege;
+  const email = req.body.email;
+  const localisation = req.body.localisation;
+  const lieu_activite = req.body.lieu_activite;
+  const annee_experience = req.body.annee_experience;
+  const domain_activity = req.body.domain_activity;
+  const age = req.body.age;
+  const niveau_etude = req.body.niveau_etude;
+  const specialite = req.body.specialite;
+  const civilite = req.body.civilite;
+  const pays = req.body.pays;
+
+  // const type_membre = req.body.type_membre;
+
+  db.query(
+    "SELECT * FROM lvc_client WHERE numero = ?",
+    numero,
+    (err, result) => {
+      if (result.length > 0) {
+        res.send("Ce utilisateur existe déjà !");
+      } else {
+        db.query(
+          "INSERT INTO lvc_client (nom, prenom, numero, whatsapp, privilege, email, localisation, lieu_activite, pays, annee_experience, domain_activity, age, niveau_etude, specialite, civilite) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          [
+            nom,
+            prenom,
+            numero,
+            whatsapp,
+            privilege,
+            email,
+            localisation,
+            lieu_activite,
+            pays,
+            annee_experience,
+            domain_activity,
+            age,
+            niveau_etude,
+            specialite,
+            civilite,
+          ],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              res.send("Création réussie !");
+              //  res.send("Values Inserted");
+            }
+          }
+        );
+      }
+    }
+  );
+});
+//registration lvc entreprise
+app.post("/registerLvcEntreprise", (req, res) => {
+  const raison_sociale = req.body.raison_sociale;
+  const domaine_activite_entrp = req.body.domaine_activite_entrp;
+  const adresse = req.body.adresse;
+  const postal = req.body.postal;
+  const num_representant = req.body.num_representant;
+  const email_entrp = req.body.email_entrp;
+  const nom_resp_hierarchique = req.body.nom_resp_hierarchique;
+  const fonction_resp_hierarchique = req.body.fonction_resp_hierarchique;
+  const email_resp_hierarchique = req.body.email_resp_hierarchique;
+  const ville = req.body.ville;
+  const pays = req.body.pays;
+
+  // const type_membre = req.body.type_membre;
+
+  db.query(
+    "SELECT * FROM lvc_entreprise WHERE email_entrp = ?",
+    email_entrp,
+    (err, result) => {
+      if (result.length > 0) {
+        res.send("Ce utilisateur existe déjà !");
+      } else {
+        db.query(
+          "INSERT INTO lvc_entreprise (raison_sociale, domaine_activite_entrp, adresse, postal, num_representant, email_entrp, nom_resp_hierarchique, fonction_resp_hierarchique, email_resp_hierarchique, ville, pays) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+          [
+            raison_sociale,
+            domaine_activite_entrp,
+            adresse,
+            postal,
+            num_representant,
+            email_entrp,
+            nom_resp_hierarchique,
+            fonction_resp_hierarchique,
+            email_resp_hierarchique,
+            ville,
+            pays,
+          ],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              res.send("Création réussie !");
+              //  res.send("Values Inserted");
+            }
+          }
+        );
+      }
+    }
+  );
+});
+//login lvc client
+app.post("/loginLvcClient", (req, res) => {
+  const numero = req.body.numero;
+
+  db.query(
+    "SELECT * FROM lvc_client WHERE numero = ?",
+    numero,
+    (err, result) => {
+      if (err) {
+        //   console.log(err);
+        res.send({ err: err });
+      }
+      //   res.send(result);
+      if (result.length > 0) {
+        const id = result[0].id;
+        const token = jwt.sign(
+          { id },
+          "jwtSecret"
+          /*, {
+                expiresIn: 6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+              }*/
+        );
+        req.session.user = result;
+
+        // res.send(result);
+        res.json({
+          auth: true,
+          token: token,
+          userInfos: result[0],
+          type_membre: "particulier",
+        });
+      } else {
+        // res.json({ auth: false, message: "L'utilisateur n'existe pas" });
+        // res.send({ message: "L'utilisateur n'existe pas"});
+        db.query(
+          "SELECT * FROM lvc_entreprise WHERE num_representant = ?",
+          numero,
+          (err, result) => {
+            if (err) {
+              //   console.log(err);
+              res.send({ err: err });
+            }
+            //   res.send(result);
+            if (result.length > 0) {
+              const id = result[0].id;
+              const token = jwt.sign(
+                { id },
+                "jwtSecret"
+                /*, {
+                      expiresIn: 6000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000,
+                    }*/
+              );
+              req.session.user = result;
+
+              // res.send(result);
+              res.json({
+                auth: true,
+                token: token,
+                userInfos: result[0],
+                type_membre: "entreprise",
+              });
+            } else {
+              res.json({ auth: false, message: "pas trouver" });
+              // res.send({ message: "L'utilisateur n'existe pas"});
+            }
+          }
+        );
+      }
+    }
+  );
+});
+//vérifier si lvc client existe
+app.post("/existLvcClient", (req, res) => {
+  const numero = req.body.numero;
+
+  db.query(
+    "SELECT * FROM lvc_client WHERE numero = ?",
+    numero,
+    (err, result) => {
+      if (err) {
+        //   console.log(err);
+        res.send({ err: err });
+      }
+      //   res.send(result);
+      if (result.length > 0) {
+        res.send("trouver");
+      } else {
+        // res.send("L'utilisateur n'existe pas");
+        db.query(
+          "SELECT * FROM lvc_entreprise  WHERE num_representant = ?",
+          numero,
+          (err, result) => {
+            if (err) {
+              //   console.log(err);
+              res.send({ err: err });
+            }
+            //   res.send(result);
+            if (result.length > 0) {
+              res.send("trouver");
+            } else {
+              res.send("pas trouver");
+            }
+          }
+        );
+      }
+    }
+  );
+});
+
+//récupérer la liste des clients
+app.get("/recupAllLvcClient", (req, res) => {
+  db.query("SELECT * FROM lvc_client", (err, result) => {
     if (err) {
       console.log(err);
+      // res.send({ err: err });
     } else {
-      console.log("succes");
-      res.send("succes");
+      res.send(result);
     }
   });
-  //res.send(" "+id+"fgf");
 });
+//récupérer la liste des entreprise
+app.get("/recupAllLvcEntreprise", (req, res) => {
+  db.query("SELECT * FROM lvc_entreprise", (err, result) => {
+    if (err) {
+      console.log(err);
+      // res.send({ err: err });
+    } else {
+      res.send(result);
+    }
+  });
+});
+//update lvc client(membre)
+app.post("/updateLvcMembre", (req, res) => {
+  const id = req.body.id_membre;
+  const nom = req.body.nom_modif;
+  const prenom = req.body.prenom_modif;
+  const numero = req.body.numero_modif;
+  const whatsapp = req.body.whatsapp_modif;
+  const privilege = req.body.privilege_modif;
+  const email = req.body.email_modif;
+  const localisation = req.body.localisation_modif;
+  const lieu_activite = req.body.lieu_activite_modif;
+  const annee_experience = req.body.annee_experience_modif;
+  const domain_activity = req.body.domainActivity_modif;
+  const age = req.body.age_modif;
+  const niveau_etude = req.body.niveau_etude_modif;
+  const specialite = req.body.specialite_modif;
+  const civilite = req.body.civilite_modif;
+  const pays = req.body.pays_client_modif;
 
-app.post("/approv", (req, res) => {
-  const id = req.body.id;
-  const quantite = req.body.quantite;
   db.query(
-    "UPDATE products SET stock=?  WHERE id = ?",
-    [quantite, id],
+    "UPDATE lvc_client SET nom = ?, prenom = ?, numero = ?, whatsapp = ?, privilege = ?, email = ?, localisation = ?, lieu_activite = ?, pays = ?, annee_experience = ?, domain_activity = ?, age = ?, niveau_etude = ?, specialite = ?, civilite = ? WHERE id = ?",
+    [
+      nom,
+      prenom,
+      numero,
+      whatsapp,
+      privilege,
+      email,
+      localisation,
+      lieu_activite,
+      pays,
+      annee_experience,
+      domain_activity,
+      age,
+      niveau_etude,
+      specialite,
+      civilite,
+      id,
+    ],
+    (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("Mis à jour réussie !");
+        // res.json({ success: 1 });
+      }
+    }
+  );
+});
+//update lvc entreprise
+app.post("/updateLvcEntreprise", (req, res) => {
+  const id = req.body.id_entreprise;
+  const raison_sociale = req.body.raison_sociale_modif;
+  const domaine_activite_entrp = req.body.domaine_activite_entrp_modif;
+  const adresse = req.body.adresse_modif;
+  const postal = req.body.postal_modif;
+  const num_representant = req.body.num_representant_modif;
+  const email_entrp = req.body.email_entrp_modif;
+  const nom_resp_hierarchique = req.body.nom_resp_hierarchique_modif;
+  const fonction_resp_hierarchique = req.body.fonction_resp_hierarchique_modif;
+  const email_resp_hierarchique = req.body.email_resp_hierarchique_modif;
+  const ville = req.body.ville_modif;
+  const pays = req.body.pays_modif;
+
+  db.query(
+    "UPDATE lvc_entreprise SET raison_sociale = ?, domaine_activite_entrp = ?, adresse = ?, postal = ?, num_representant = ?, email_entrp = ?, nom_resp_hierarchique = ?, fonction_resp_hierarchique = ?, email_resp_hierarchique = ?, ville = ?, pays = ? WHERE id = ?",
+    [
+      raison_sociale,
+      domaine_activite_entrp,
+      adresse,
+      postal,
+      num_representant,
+      email_entrp,
+      nom_resp_hierarchique,
+      fonction_resp_hierarchique,
+      email_resp_hierarchique,
+      ville,
+      pays,
+      id,
+    ],
+    (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.send("Mis à jour réussie !");
+        // res.json({ success: 1 });
+      }
+    }
+  );
+});
+//suppression lvc client(membre)
+app.post("/deleteLvcClient", (req, res) => {
+  const id = req.body.id;
+
+  db.query("DELETE FROM lvc_client WHERE id = ?", id, (err, results) => {
+    if (err) {
+      res.send(err);
+    } else {
+      res.json({ success: 1 });
+    }
+  });
+});
+//suppression lvc entreprise
+app.post("/deleteLvcEntreprise", (req, res) => {
+  const id = req.body.id;
+
+  db.query("DELETE FROM lvc_entreprise WHERE id = ?", id, (err, results) => {
+    if (err) {
+      res.send(err);
+    } else {
+      res.json({ success: 1 });
+    }
+  });
+});
+/*ajout de publication admin*/
+app.post("/ajout_pub_admin", (req, res) => {
+  const id_admin = req.body.id_admin;
+  const titre = req.body.titre;
+  const message = req.body.message;
+
+  db.query(
+    "INSERT INTO lvc_publication_admin (id_admin, titre, message) VALUES (?,?,?)",
+    [id_admin, titre, message],
+    (err, result) => {
+      if (err) {
+        // console.log(err);
+        res.send("Erreur d'ajout");
+      } else {
+        // res.send(result);
+        db.query(
+          "SELECT id FROM lvc_publication_admin WHERE message = ?",
+          [message],
+          (err, result) => {
+            if (err) {
+              // console.log(err);
+              res.send("Erreur d'obtention id publication");
+            } else {
+              res.send(result[0]);
+            }
+          }
+        );
+      }
+    }
+  );
+});
+/* envoi d'image de publication admin */
+app.put("/ajout_pub_admin_image/:id", async (req, res) => {
+  const id = req.params.id;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = {
+      image:
+        "https://backend-versatilekills.benindigital.com/lvcpic/" +
+        req.file.filename,
+    };
+
+    db.query(
+      "UPDATE lvc_publication_admin SET ? WHERE id = ?",
+      [classifiedsadd, id],
+      (err, result) => {
+        if (err) {
+          // console.log(err);
+          fs.unlink("lvcpic/" + req.file.filename, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            //file removed
+          });
+          res.send("Erreur d'envoi image");
+        } else {
+          res.send("Pic inserted");
+        }
+      }
+    );
+  });
+});
+//récupérer la liste des publications admin
+app.get("/recup_pubs_admin", (req, res) => {
+  db.query("SELECT * FROM lvc_publication_admin", (err, result) => {
+    if (err) {
+      console.log(err);
+      // res.send({ err: err });
+    } else {
+      res.send(result);
+    }
+  });
+});
+//récupérer la liste des admin
+app.get("/recup_liste_admin", (req, res) => {
+  db.query("SELECT id, username, profil_img FROM lvc_admin", (err, result) => {
+    if (err) {
+      console.log(err);
+      // res.send({ err: err });
+    } else {
+      res.send(result);
+    }
+  });
+});
+/*modification d'une publication admin*/
+app.post("/modif_pub_admin", (req, res) => {
+  const id = req.body.id_publication;
+  const titre = req.body.titre;
+  const message = req.body.message;
+
+  db.query(
+    "UPDATE lvc_publication_admin SET titre = ?, message = ? WHERE id = ?",
+    [titre, message, id],
     (err, result) => {
       if (err) {
         console.log(err);
       } else {
-        res.send("suc");
+        res.send("Maj succès");
+      }
+    }
+  );
+});
+/* mise à jour d'image de publication admin et suppression de l'ancienne image de la base de données */
+app.put("/modif_pub_admin_image/:id", async (req, res) => {
+  const id = req.params.id;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = {
+      image:
+        "https://backend-versatilekills.benindigital.com/lvcpic/" +
+        req.file.filename,
+    };
+
+    db.query(
+      "UPDATE lvc_publication_admin SET ? WHERE id = ?",
+      [classifiedsadd, id],
+      (err, result) => {
+        if (err) {
+          // console.log(err);
+          fs.unlink("lvcpic/" + req.file.filename, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            //file removed
+          });
+          res.send("Erreur d'envoi image");
+        } else {
+          res.send("Image mise à jour succès");
+        }
+      }
+    );
+  });
+});
+/* suppression de l'image précédente de la publication après la mise à jour de celle-ci */
+app.post("/delete_img_after_maj", (req, res) => {
+  const last_img = req.body.last_img;
+
+  fs.unlink(last_img.slice(48), (err) => {
+    if (err) {
+      console.error(err);
+      return;
+    }
+
+    //file removed
+  });
+});
+//suppression d'une publication admin
+app.post("/delete_pub_admin", (req, res) => {
+  const id = req.body.id;
+
+  db.query(
+    "DELETE FROM lvc_publication_admin WHERE id = ?",
+    id,
+    (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        res.json({ success: 1 });
+      }
+    }
+  );
+});
+//choix de la publication admin à afficher
+app.post("/activer_publication", (req, res) => {
+  const id = req.body.id;
+  let affiche = 1;
+
+  db.query(
+    "UPDATE lvc_publication_admin SET affiche = ? WHERE id = ?",
+    [affiche, id],
+    (err, results) => {
+      if (err) {
+        // res.send(err);
+        res.send("Erreur");
+      } else {
+        res.json({ success: 1 });
+      }
+    }
+  );
+});
+//ne plus afficher la publication
+app.post("/desactiver_publication", (req, res) => {
+  const id = req.body.id;
+  let affiche = 0;
+
+  db.query(
+    "UPDATE lvc_publication_admin SET affiche = ? WHERE id = ?",
+    [affiche, id],
+    (err, results) => {
+      if (err) {
+        // res.send(err);
+        res.send("Erreur");
+      } else {
+        res.json({ success: 1 });
+      }
+    }
+  );
+});
+//récupérer la liste des publications des membres
+app.get("/recup_liste_publication_membre", (req, res) => {
+  db.query(
+    "SELECT * FROM lvc_publication_membre ORDER BY id DESC",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+//mettre à jour le statut d'une publication membre
+app.post("/maj_publication_statut", (req, res) => {
+  const id = req.body.id;
+  const statut = req.body.statut;
+
+  db.query(
+    "UPDATE lvc_publication_membre SET statut = ? WHERE id = ?",
+    [statut, id],
+    (err, results) => {
+      if (err) {
+        // res.send(err);
+        res.send("Erreur lors de la maj");
+      } else {
+        res.json({ success: 1 });
+      }
+    }
+  );
+});
+//récupérer la liste de modification de profil particulier soumis
+app.get("/liste_modification_particulier", (req, res) => {
+  db.query("SELECT * FROM lvc_modification_client", (err, result) => {
+    if (err) {
+      console.log(err);
+      // res.send({ err: err });
+    } else {
+      res.send(result);
+    }
+  });
+});
+//récupérer la liste de modification de profil entreprise soumis
+app.get("/liste_modification_entreprise", (req, res) => {
+  db.query("SELECT * FROM lvc_modification_entreprise", (err, result) => {
+    if (err) {
+      console.log(err);
+      // res.send({ err: err });
+    } else {
+      res.send(result);
+    }
+  });
+});
+//récupérer la liste des derniers profils
+app.get("/recentsprofils", (req, res) => {
+  db.query(
+    "SELECT * FROM lvc_client ORDER BY id DESC LIMIT 10",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
       }
     }
   );
 });
 
-app.post("/approv2", (req, res) => {
-  const tail = req.body.tail;
-  const approv = req.body.approv;
-  for (var i = 0; i < tail; i++) {
+//récupérer la liste des dernier profil entreprise
+app.get("/recentsprofils_enterprise", (req, res) => {
+  db.query(
+    "SELECT * FROM lvc_entreprise ORDER BY id DESC LIMIT 10",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+//changement de statut d'un profil particulier soumis et mise à jour si statut = accepte du profil de ce particulier
+app.post("/maj_profil_soumis_particulier", (req, res) => {
+  const id = req.body.id;
+  const id_particulier = req.body.id_particulier;
+  const statut = req.body.statut;
+  const nom = req.body.nom;
+  const prenom = req.body.prenom;
+  const numero = req.body.numero;
+  const whatsapp = req.body.whatsapp;
+  const privilege = req.body.privilege;
+  const email = req.body.email;
+  const localisation = req.body.localisation;
+  const lieu_activite = req.body.lieu_activite;
+  const annee_experience = req.body.annee_experience;
+  const domain_activity = req.body.domain_activity;
+  const age = req.body.age;
+  const niveau_etude = req.body.niveau_etude;
+  const specialite = req.body.specialite;
+  const civilite = req.body.civilite;
+  const pays = req.body.pays;
+  const profil_img = req.body.profil_img;
+
+  if (statut == "accepte") {
     db.query(
-      "UPDATE products SET stock=?  WHERE id = ?",
-      [approv[i].stock_appro + approv[i].stock_preview, approv[i].product_id],
-      (err, result) => {
+      "UPDATE lvc_client SET nom = ?, prenom = ?, numero = ?, whatsapp = ?, privilege = ?, email = ?, localisation = ?, lieu_activite = ?, pays = ?, annee_experience = ?, domain_activity = ?, age = ?, niveau_etude = ?, specialite = ?, civilite = ?, profil_img = ? WHERE id = ?",
+      [
+        nom,
+        prenom,
+        numero,
+        whatsapp,
+        privilege,
+        email,
+        localisation,
+        lieu_activite,
+        pays,
+        annee_experience,
+        domain_activity,
+        age,
+        niveau_etude,
+        specialite,
+        civilite,
+        profil_img,
+        id_particulier,
+      ],
+      (err, results) => {
         if (err) {
-          console.log(err);
+          // res.send(err);
+          res.send("Erreur lors de la maj du profil");
         } else {
-          res.send("suc");
+          db.query(
+            "UPDATE lvc_modification_client SET statut = ? WHERE id = ?",
+            [statut, id],
+            (err, results) => {
+              if (err) {
+                // res.send(err);
+                res.send("Erreur lors de la maj");
+              } else {
+                res.json({ success: 1 });
+              }
+            }
+          );
+        }
+      }
+    );
+  } else if (statut == "rejete") {
+    db.query(
+      "UPDATE lvc_modification_client SET statut = ? WHERE id = ?",
+      [statut, id],
+      (err, results) => {
+        if (err) {
+          // res.send(err);
+          res.send("Erreur lors de la maj");
+        } else {
+          res.json({ success: 1 });
+        }
+      }
+    );
+  }
+});
+//changement de statut d'un profil entreprise soumis et mise à jour si statut=accepte du profil de cette entreprise
+app.post("/maj_profil_soumis_entreprise", (req, res) => {
+  const id = req.body.id;
+  const id_entreprise = req.body.id_entreprise;
+  const statut = req.body.statut;
+  const raison_sociale = req.body.raison_sociale;
+  const domaine_activite_entrp = req.body.domaine_activite_entrp;
+  const adresse = req.body.adresse;
+  const postal = req.body.postal;
+  const num_representant = req.body.num_representant;
+  const email_entrp = req.body.email_entrp;
+  const nom_resp_hierarchique = req.body.nom_resp_hierarchique;
+  const fonction_resp_hierarchique = req.body.fonction_resp_hierarchique;
+  const email_resp_hierarchique = req.body.email_resp_hierarchique;
+  const ville = req.body.ville;
+  const pays = req.body.pays;
+  const profil_img = req.body.profil_img;
+
+  if (statut == "accepte") {
+    db.query(
+      "UPDATE lvc_entreprise SET raison_sociale = ?, domaine_activite_entrp = ?, adresse = ?, postal = ?, num_representant = ?, email_entrp = ?, nom_resp_hierarchique = ?, fonction_resp_hierarchique = ?, email_resp_hierarchique = ?, ville = ?, pays = ?, profil_img = ? WHERE id = ?",
+      [
+        raison_sociale,
+        domaine_activite_entrp,
+        adresse,
+        postal,
+        num_representant,
+        email_entrp,
+        nom_resp_hierarchique,
+        fonction_resp_hierarchique,
+        email_resp_hierarchique,
+        ville,
+        pays,
+        profil_img,
+        id_entreprise,
+      ],
+      (err, results) => {
+        if (err) {
+          // res.send(err);
+          res.send("Erreur lors de la maj du profil");
+        } else {
+          db.query(
+            "UPDATE lvc_modification_entreprise SET statut = ? WHERE id = ?",
+            [statut, id],
+            (err, results) => {
+              if (err) {
+                // res.send(err);
+                res.send("Erreur lors de la maj");
+              } else {
+                res.json({ success: 1 });
+              }
+            }
+          );
+        }
+      }
+    );
+  } else if (statut == "rejete") {
+    db.query(
+      "UPDATE lvc_modification_entreprise SET statut = ? WHERE id = ?",
+      [statut, id],
+      (err, results) => {
+        if (err) {
+          // res.send(err);
+          res.send("Erreur lors de la maj");
+        } else {
+          res.json({ success: 1 });
         }
       }
     );
   }
 });
 
-app.post("/rej", (req, res) => {
-  //  const id = req.body.id;
-  res.send(2);
-});
-
-//*************************************************      nelson     **********************************************************************
-
-/* obtenir la liste des produits */
-app.get("/productslist", (req, res) => {
-  db.query("SELECT * FROM products", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-/* detail d'un produit*/
-app.post("/detailProduct", (req, res) => {
-  const productId = req.body.productId;
+/*soumissions utilisateur client pour la modification de son profils*/
+app.post("/modif_soumissions_client", (req, res) => {
+  const id = req.body.id;
+  const nom = req.body.nom;
+  const prenom = req.body.prenom;
+  const numero = req.body.numero;
+  const whatsapp = req.body.whatsapp;
+  const profil_img = req.body.profil_img;
+  const privilege = req.body.privilege;
+  const email = req.body.email;
+  const localisation = req.body.localisation;
+  const lieu_activite = req.body.lieu_activite;
+  const pays = req.body.pays;
+  const annee_experience = req.body.annee_experience;
+  const domain_activity = req.body.domain_activity;
+  const age = req.body.age;
+  const niveau_etude = req.body.niveau_etude;
+  const specialite = req.body.specialite;
+  const civilite = req.body.civilite;
+  const status = "soumis";
 
   db.query(
-    "SELECT * FROM products WHERE id = ?",
-    [productId],
+    "SELECT * FROM lvc_modification_client WHERE id_client = ? and statut = ?",
+    [id, status],
+    (err, result) => {
+      if (result.length > 0) {
+        res.send("octopus");
+      } else {
+        db.query(
+          "INSERT INTO lvc_modification_client (id_client , nom , prenom , numero , whatsapp , profil_img , privilege , email , localisation , lieu_activite , pays , annee_experience , domainActivity , age , niveau_etude , specialite , civilite) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          [
+            id,
+            nom,
+            prenom,
+            numero,
+            whatsapp,
+            profil_img,
+            privilege,
+            email,
+            localisation,
+            lieu_activite,
+            pays,
+            annee_experience,
+            domain_activity,
+            age,
+            niveau_etude,
+            specialite,
+            civilite,
+          ],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              //res.send("suc");
+              db.query(
+                "SELECT  MAX(id) AS id FROM lvc_modification_client ",
+                (err, result) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                    res.send(String(result[0].id));
+                    // res.json({ id: result, message: "modif soumis avec succès" });
+                  }
+                }
+              );
+            }
+          }
+        );
+      }
+    }
+  );
+});
+/* add image to data soumis by client */
+
+app.put("/addimgsoumis_client/:id", async (req, res) => {
+  const id = req.params.id;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = {
+      profil_img: "lvcpic/" + req.file.filename,
+    };
+
+    db.query(
+      "UPDATE lvc_modification_client SET ? WHERE id = ?",
+      [classifiedsadd, id],
+      (err, result) => {
+        if (err) {
+          // console.log(err);
+          fs.unlink("lvcpic/" + req.file.filename, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            //file removed
+          });
+          res.send("Erreur d'envoi image");
+        } else {
+          res.send("modif soumis avec succès");
+        }
+      }
+    );
+  });
+});
+
+/*soumissions utilisateur client entreprise pour la modification de son profils*/
+app.post("/modif_soumissions_entreprise", (req, res) => {
+  const id = req.body.id;
+  const raison_sociale = req.body.raison_sociale;
+  const domaine_activite_entrp = req.body.domaine_activite_entrp;
+  const adresse = req.body.adresse;
+  const postal = req.body.postal;
+  const profil_img = req.body.profil_img;
+  const num_representant = req.body.num_representant;
+  const email_entrp = req.body.email_entrp;
+  const nom_resp_hierarchique = req.body.nom_resp_hierarchique;
+  const fonction_resp_hierarchique = req.body.fonction_resp_hierarchique;
+  const email_resp_hierarchique = req.body.email_resp_hierarchique;
+  const ville = req.body.ville;
+  const pays = req.body.pays;
+  const status = "soumis";
+
+  db.query(
+    "SELECT * FROM lvc_modification_entreprise WHERE id_entreprise = ? and statut = ?",
+    [id, status],
+    (err, result) => {
+      if (result.length > 0) {
+        res.send("octopus");
+      } else {
+        db.query(
+          "INSERT INTO lvc_modification_entreprise (id_entreprise, raison_sociale , domaine_activite_entrp , adresse , postal , profil_img , num_representant , email_entrp , nom_resp_hierarchique , fonction_resp_hierarchique , email_resp_hierarchique , ville , pays) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
+          [
+            id,
+            raison_sociale,
+            domaine_activite_entrp,
+            adresse,
+            postal,
+            profil_img,
+            num_representant,
+            email_entrp,
+            nom_resp_hierarchique,
+            fonction_resp_hierarchique,
+            email_resp_hierarchique,
+            ville,
+            pays,
+          ],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              //res.send("suc");
+              db.query(
+                "SELECT  MAX(id) AS id FROM lvc_modification_entreprise ",
+                (err, result) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                    // res.send(result);
+                    res.send(String(result[0].id));
+
+                    // res.json({ id: result, message: "modif soumis avec succès" });
+                  }
+                }
+              );
+            }
+          }
+        );
+      }
+    }
+  );
+});
+/* add image to data soumis by client entreprise */
+
+app.put("/addimgsoumis_entreprise/:id", async (req, res) => {
+  const id = req.params.id;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = {
+      profil_img: "lvcpic/" + req.file.filename,
+    };
+
+    db.query(
+      "UPDATE lvc_modification_entreprise SET ? WHERE id = ?",
+      [classifiedsadd, id],
+      (err, result) => {
+        if (err) {
+          // console.log(err);
+          fs.unlink("lvcpic/" + req.file.filename, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            //file removed
+          });
+          res.send("Erreur d'envoi image");
+        } else {
+          res.send("modif soumis avec succès");
+        }
+      }
+    );
+  });
+});
+
+//récupérer la liste des soumissions d'un client
+app.post("/recup_soumission_client", (req, res) => {
+  const id = req.body.id;
+  const statut = "accepte";
+
+  db.query(
+    "SELECT * FROM lvc_modification_client WHERE id_client = ? and statut = ?",
+    [id, statut],
     (err, result) => {
       if (err) {
         console.log(err);
+        // res.send({ err: err });
       } else {
-        // console.log(result);
         res.send(result);
       }
     }
   );
 });
-/* obtenir l'invoice*/
-app.get("/getInvoice", (req, res) => {
-  let invoice = "";
-  let nbrligne = 0;
-  let numfacend = 0;
-  let newfacend = 0;
-  db.query("SELECT * FROM commands", (err, result) => {
+
+//récupérer la liste des soumissions d'un client entreprise
+app.post("/recup_soumission_client_entreprise", (req, res) => {
+  const id = req.body.id;
+  const statut = "accepte";
+
+  db.query(
+    "SELECT * FROM lvc_modification_entreprise WHERE id_entreprise = ? and statut = ?",
+    [id, statut],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+//récupérer la liste des soumissions de client
+app.get("/recup_all_soumission_client", (req, res) => {
+  const statut = "accepte";
+
+  db.query(
+    "SELECT * FROM lvc_modification_client WHERE statut = ? ORDER BY id DESC",
+    statut,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+//récupérer la liste des soumissions des entreprise
+app.get("/recup_all_soumission_client_entreprise", (req, res) => {
+  const statut = "accepte";
+
+  db.query(
+    "SELECT * FROM lvc_modification_entreprise WHERE statut = ? ORDER BY id DESC",
+    statut,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
+//récupérer la liste des publication d'un client
+app.post("/recup_pub_membre", (req, res) => {
+  const id = req.body.id;
+  const type_membre = req.body.type_membre;
+  const statut = "accepte";
+
+  db.query(
+    "SELECT * FROM lvc_publication_membre WHERE id_membre = ? and type_membre = ? and statut = ? ORDER BY id DESC",
+    [id, type_membre, statut],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+//récupérer la liste des soumissions d'un client entreprise
+app.get("/recup_all_pub_membre", (req, res) => {
+  const statut = "accepte";
+
+  db.query(
+    "SELECT * FROM lvc_publication_membre WHERE statut = ? ORDER BY id DESC",
+    statut,
+    (err, result) => {
+      if (err) {
+        console.log(err);
+        // res.send({ err: err });
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
+//add publication membre
+app.post("/add_publication_membre", (req, res) => {
+  const id = req.body.id;
+  const type_membre = req.body.type_membre;
+  const message = req.body.message;
+  const status = "soumis";
+
+  db.query(
+    "SELECT * FROM lvc_publication_membre WHERE id_membre = ? and statut = ?",
+    [id, status],
+    (err, result) => {
+      if (result.length > 0) {
+        res.send("octopus");
+      } else {
+        db.query(
+          "INSERT INTO lvc_publication_membre (type_membre , message, id_membre) VALUES (?,?,?)",
+          [type_membre, message, id],
+          (err, result) => {
+            if (err) {
+              console.log(err);
+            } else {
+              //res.send("suc");
+              db.query(
+                "SELECT  MAX(id) AS id FROM lvc_publication_membre ",
+                (err, result) => {
+                  if (err) {
+                    console.log(err);
+                  } else {
+                    res.send(String(result[0].id));
+
+                    // res.json({ id: result, message: "modif soumis avec succès" });
+                  }
+                }
+              );
+            }
+          }
+        );
+      }
+    }
+  );
+});
+/* add image to data soumis by client */
+
+app.put("/addimgpublication_membre/:id/:sync", async (req, res) => {
+  const id = req.params.id;
+  const sync = req.params.sync;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = {
+      image: "lvcpic/" + req.file.filename,
+    };
+    if (sync == 1) {
+      classifiedsadd = {
+        image: "lvcpic/" + req.file.filename,
+      };
+    }
+    if (sync == 2) {
+      classifiedsadd = {
+        video: "lvcpic/" + req.file.filename,
+      };
+    }
+    db.query(
+      "UPDATE lvc_publication_membre SET ? WHERE id = ?",
+      [classifiedsadd, id],
+      (err, result) => {
+        if (err) {
+          // console.log(err);
+          fs.unlink("lvcpic/" + req.file.filename, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            //file removed
+          });
+          res.send("Erreur d'envoi image");
+        } else {
+          res.send("publication soumis avec succès");
+        }
+      }
+    );
+  });
+});
+
+//add commentaire for a member
+app.post("/add_comment", (req, res) => {
+  const id_membre1 = req.body.id_membre1;
+  const id_membre2 = req.body.id_membre2;
+  const type_membre2 = req.body.type_membre2;
+  const type_membre1 = req.body.type_membre1;
+  const commentaire = req.body.commentaire;
+  const profil_img1 = req.body.profil_img1;
+  const nom_membre1 = req.body.nom_membre1;
+  const email_membre1 = req.body.email_membre1;
+
+  db.query(
+    "INSERT INTO commentaire (type_membre1, type_membre2 , commentaire , id_membre1 , id_membre2, profil_img1, nom_membre1, email_membre1) VALUES (?,?,?,?,?,?,?,?)",
+    [
+      type_membre1,
+      type_membre2,
+      commentaire,
+      id_membre1,
+      id_membre2,
+      profil_img1,
+      nom_membre1,
+      email_membre1,
+    ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("succès");
+      }
+    }
+  );
+});
+
+//update commentaire for a member
+app.post("/update_comment", (req, res) => {
+  const id = req.body.id;
+  const id_membre2 = req.body.id_membre2;
+  const commentaire = req.body.commentaire;
+
+  db.query(
+    "UPDATE commentaire SET commentaire = ? WHERE id = ? and id_membre2 = ?",
+    [commentaire, id, id_membre2],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("succès");
+      }
+    }
+  );
+});
+
+//delete commentaire for a member
+app.post("/delete_comment", (req, res) => {
+  const id = req.body.id;
+  const id_membre2 = req.body.id_membre2;
+
+  db.query(
+    "DELETE FROM commentaire WHERE id = ? and id_membre2 = ?",
+    [id, id_membre2],
+    (err, results) => {
+      if (err) {
+        res.send(err);
+      } else {
+        // res.json({ success: 1 });
+        res.send("succès");
+      }
+    }
+  );
+});
+
+//recuperer la liste des commentaire d'un membre
+app.post("/recup_comment", (req, res) => {
+  // const id_membre1 = req.body.id_membre1;
+  const id_membre2 = req.body.id_membre2;
+  const type_membre2 = req.body.type_membre2;
+  db.query(
+    "SELECT * FROM commentaire WHERE id_membre2 = ? and type_membre2 = ? ORDER BY id DESC",
+    [id_membre2, type_membre2],
+    (err, result) => {
+      res.send(result);
+    }
+  );
+});
+
+app.post("/recup_all_commenter", (req, res) => {
+  // const id_membre1 = req.body.id_membre1;
+  const id_membre2 = req.body.id_membre2;
+  const type_membre2 = req.body.type_membre2;
+  db.query(
+    "SELECT * FROM commentaire WHERE id_membre2 = ? and type_membre2 = ? ORDER BY id DESC",
+    [id_membre2, type_membre2],
+    (err, result) => {
+      res.send(String(result.length));
+    }
+  );
+});
+
+//add note for a member
+app.post("/add_note", (req, res) => {
+  const id_membre1 = req.body.id_membre1;
+  const id_membre2 = req.body.id_membre2;
+  const type_membre2 = req.body.type_membre2;
+  const note_actuel = req.body.note_actuel;
+  let note_ante_global = 0;
+  // let note_post_global = 0;
+  let total_membre_note = 0;
+  let somme_note = 0;
+  let note_pref = 0;
+
+  if (type_membre2 == "particulier") {
+    db.query(
+      "SELECT * FROM note WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+      [id_membre1, id_membre2, type_membre2],
+      (err, result) => {
+        if (result.length > 0) {
+          db.query(
+            "UPDATE note SET note_actuel = ? WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+            [note_actuel, id_membre1, id_membre2, type_membre2],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              } else {
+                db.query(
+                  "SELECT * FROM lvc_client WHERE id = ?",
+                  [id_membre2],
+                  (err, result) => {
+                    note_ante_global = parseInt(result[0].note_global);
+                    db.query(
+                      "SELECT * FROM note WHERE id_membre2 = ?",
+                      [id_membre2],
+                      (err, result) => {
+                        total_membre_note = parseInt(result.length);
+                        db.query(
+                          "SELECT SUM(note_actuel) as note_actuel FROM note WHERE id_membre2 = ?",
+                          [id_membre2],
+                          (err, result) => {
+                            somme_note = parseInt(result[0].note_actuel);
+                            note_pref = somme_note / total_membre_note;
+                            db.query(
+                              "UPDATE note SET note_ante_global = ?, note_post_global = ? WHERE id_membre1 = ? and id_membre2 = ?  and type_membre2 = ?",
+                              [
+                                note_ante_global,
+                                note_pref,
+                                id_membre1,
+                                id_membre2,
+                                type_membre2,
+                              ],
+                              (err, result) => {
+                                db.query(
+                                  "UPDATE lvc_client SET note_global = ? WHERE id = ?",
+                                  [note_pref, id_membre2],
+                                  (err, result) => {
+                                    res.send("succès");
+                                  }
+                                );
+                              }
+                            );
+                          }
+                        );
+                      }
+                    );
+                  }
+                );
+              }
+            }
+          );
+        } else {
+          db.query(
+            "INSERT INTO note (id_membre1 , id_membre2 , type_membre2 , note_actuel) VALUES (?,?,?,?)",
+            [id_membre1, id_membre2, type_membre2, note_actuel],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              } else {
+                db.query(
+                  "SELECT * FROM lvc_client WHERE id = ?",
+                  [id_membre2],
+                  (err, result) => {
+                    note_ante_global = parseInt(result[0].note_global);
+                    db.query(
+                      "SELECT * FROM note WHERE id_membre2 = ?",
+                      [id_membre2],
+                      (err, result) => {
+                        total_membre_note = parseInt(result.length);
+                        db.query(
+                          "SELECT SUM(note_actuel) as note_actuel FROM note WHERE id_membre2 = ?",
+                          [id_membre2],
+                          (err, result) => {
+                            somme_note = parseInt(result[0].note_actuel);
+                            note_pref = somme_note / total_membre_note;
+                            db.query(
+                              "UPDATE note SET note_ante_global = ?, note_post_global = ? WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+                              [
+                                note_ante_global,
+                                note_pref,
+                                id_membre1,
+                                id_membre2,
+                                type_membre2,
+                              ],
+                              (err, result) => {
+                                db.query(
+                                  "UPDATE lvc_client SET note_global = ? WHERE id = ?",
+                                  [note_pref, id_membre2],
+                                  (err, result) => {
+                                    res.send("succès");
+                                  }
+                                );
+                              }
+                            );
+                          }
+                        );
+                      }
+                    );
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+  } else if (type_membre2 == "entreprise") {
+    db.query(
+      "SELECT * FROM note WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+      [id_membre1, id_membre2, type_membre2],
+      (err, result) => {
+        if (result.length > 0) {
+          db.query(
+            "UPDATE note SET note_actuel = ? WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+            [note_actuel, id_membre1, id_membre2, type_membre2],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              } else {
+                db.query(
+                  "SELECT * FROM lvc_entreprise WHERE id = ?",
+                  [id_membre2],
+                  (err, result) => {
+                    note_ante_global = parseInt(result[0].note_global);
+                    db.query(
+                      "SELECT * FROM note WHERE id_membre2 = ?",
+                      [id_membre2],
+                      (err, result) => {
+                        total_membre_note = parseInt(result.length);
+                        db.query(
+                          "SELECT SUM(note_actuel) as note_actuel FROM note WHERE id_membre2 = ?",
+                          [id_membre2],
+                          (err, result) => {
+                            somme_note = parseInt(result[0].note_actuel);
+                            note_pref = somme_note / total_membre_note;
+                            db.query(
+                              "UPDATE note SET note_ante_global = ?, note_post_global = ? WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+                              [
+                                note_ante_global,
+                                note_pref,
+                                id_membre1,
+                                id_membre2,
+                                type_membre2,
+                              ],
+                              (err, result) => {
+                                db.query(
+                                  "UPDATE lvc_entreprise SET note_global = ? WHERE id = ?",
+                                  [note_pref, id_membre2],
+                                  (err, result) => {
+                                    res.send("succès");
+                                  }
+                                );
+                              }
+                            );
+                          }
+                        );
+                      }
+                    );
+                  }
+                );
+              }
+            }
+          );
+        } else {
+          db.query(
+            "INSERT INTO note (id_membre1 , id_membre2 , type_membre2 , note_actuel) VALUES (?,?,?,?)",
+            [id_membre1, id_membre2, type_membre2, note_actuel],
+            (err, result) => {
+              if (err) {
+                console.log(err);
+              } else {
+                db.query(
+                  "SELECT * FROM lvc_entreprise WHERE id = ?",
+                  [id_membre2],
+                  (err, result) => {
+                    note_ante_global = parseInt(result[0].note_global);
+                    db.query(
+                      "SELECT * FROM note WHERE id_membre2 = ?",
+                      [id_membre2],
+                      (err, result) => {
+                        total_membre_note = parseInt(result.length);
+                        db.query(
+                          "SELECT SUM(note_actuel) as note_actuel FROM note WHERE id_membre2 = ?",
+                          [id_membre2],
+                          (err, result) => {
+                            somme_note = parseInt(result[0].note_actuel);
+                            note_pref = somme_note / total_membre_note;
+                            db.query(
+                              "UPDATE note SET note_ante_global = ?, note_post_global = ? WHERE id_membre1 = ? and id_membre2 = ?  and type_membre2 = ?",
+                              [
+                                note_ante_global,
+                                note_pref,
+                                id_membre1,
+                                id_membre2,
+                                type_membre2,
+                              ],
+                              (err, result) => {
+                                db.query(
+                                  "UPDATE lvc_entreprise SET note_global = ? WHERE id = ?",
+                                  [note_pref, id_membre2],
+                                  (err, result) => {
+                                    res.send("succès");
+                                  }
+                                );
+                              }
+                            );
+                          }
+                        );
+                      }
+                    );
+                  }
+                );
+              }
+            }
+          );
+        }
+      }
+    );
+  }
+});
+
+//recuperer le nombre de votant pour un membre
+app.post("/recup_all_votant", (req, res) => {
+  // const id_membre1 = req.body.id_membre1;
+  const id_membre2 = req.body.id_membre2;
+  const type_membre2 = req.body.type_membre2;
+  const note_global = 0;
+  const nombre_votant = 0;
+  db.query(
+    "SELECT * FROM note WHERE id_membre2 = ? and type_membre2 = ?",
+    [id_membre2, type_membre2],
+    (err, result) => {
+      // nombre_votant = parseInt(result.length);
+      // res.send(nombre_votant);
+      if (type_membre2 === "particulier") {
+        db.query(
+          "SELECT note_global FROM lvc_client WHERE id = ?",
+          [id_membre2],
+          (err, result1) => {
+            // note_global = parseInt(result[0].note_global);
+            res.json({
+              nombre_votant: result.length,
+              note_global: result1[0].note_global,
+            });
+            // res.send(result);
+          }
+        );
+      } else if (type_membre2 === "entreprise") {
+        db.query(
+          "SELECT note_global FROM lvc_entreprise WHERE id = ?",
+          [id_membre2],
+          (err, result1) => {
+            // note_global = parseInt(result[0].note_global);
+            res.json({
+              nombre_votant: result.length,
+              note_global: result1[0].note_global,
+            });
+            // res.send(result);
+          }
+        );
+      }
+    }
+  );
+});
+
+//recuperer la derniere note pour un membre
+app.post("/recup_last_note", (req, res) => {
+  // const id_membre1 = req.body.id_membre1;
+  const id_membre2 = req.body.id_membre2;
+  const id_membre1 = req.body.id_membre1;
+  const type_membre2 = req.body.type_membre2;
+  db.query(
+    "SELECT * FROM note WHERE id_membre1 = ? and id_membre2 = ? and type_membre2 = ?",
+    [id_membre1, id_membre2, type_membre2],
+    (err, result) => {
+      if (result.length > 0) {
+        db.query(
+          "SELECT note_actuel FROM note WHERE id_membre2 = ? and type_membre2 = ? and id_membre1 = ?",
+          [id_membre2, type_membre2, id_membre1],
+          (err, result) => {
+            // nombre_votant = parseInt(result.length);
+            res.send(String(result[0].note_actuel));
+          }
+        );
+      } else {
+        // res.json({ note_actuel: 0 });
+        res.send(String(0));
+      }
+    }
+  );
+});
+
+//maj lvc admin informations
+app.post("/update_admin_infos", (req, res) => {
+  const username = req.body.username;
+  const id = req.body.id;
+
+  db.query(
+    "UPDATE lvc_admin SET username = ? WHERE id = ?",
+    [username, id],
+    (err, result) => {
+      if (err) {
+        res.send("Maj erreur");
+      } else {
+        res.send("Maj succès");
+      }
+    }
+  );
+});
+//obtenir les infos d'un lvc admin
+app.post("/lvc_admin_info", (req, res) => {
+  const id = req.body.id;
+
+  db.query("SELECT * FROM lvc_admin WHERE id = ?", id, (err, result) => {
     if (err) {
       console.log(err);
     } else {
-      nbrligne = result.length;
-      if (nbrligne > 0) {
-        db.query("SELECT MAX(id) AS TOTA FROM commands", (err, result) => {
-          if (err) {
-            console.log(err);
-          } else {
+      res.json({
+        username: result[0].username,
+        profil_img: result[0].profil_img,
+      });
+    }
+  });
+});
+/* mise à jour photo profil admin et suppression de l'ancienne image de la base de données */
+app.put("/update_admin_image/:id", async (req, res) => {
+  const id = req.params.id;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+    let classifiedsadd = {
+      profil_img:
+        "https://backend-versatilekills.benindigital.com/lvcpic/" +
+        req.file.filename,
+    };
+
+    db.query(
+      "UPDATE lvc_admin SET ? WHERE id = ?",
+      [classifiedsadd, id],
+      (err, result) => {
+        if (err) {
+          // console.log(err);
+          fs.unlink("lvcpic/" + req.file.filename, (err) => {
+            if (err) {
+              console.error(err);
+              return;
+            }
+
+            //file removed
+          });
+          res.send("Erreur d'envoi image");
+        } else {
+          res.send("Image mise à jour succès");
+        }
+      }
+    );
+  });
+});
+//modification de mot de passe admin
+app.post("/lvc_admin_changepassword", async (req, res) => {
+  const { oldPassword, newPassword, id } = req.body;
+
+  db.query("SELECT * FROM lvc_admin WHERE id = ?", id, (err, result) => {
+    if (err) {
+      //   console.log(err);
+      res.send({ err: err });
+    }
+    //   res.send(result);
+    if (result.length > 0) {
+      bcrypt.compare(oldPassword, result[0].password).then(async (match) => {
+        if (!match) {
+          res.json({ error: "Wrong Password Entered!" });
+        } else {
+          bcrypt.hash(newPassword, 10).then((hash) => {
             db.query(
-              "SELECT * FROM commands WHERE id = ?",
-              [result[0].TOTA],
+              "UPDATE lvc_admin SET password = ? WHERE id = ?",
+              [hash, id],
               (err, result) => {
                 if (err) {
-                  console.log(err);
+                  res.send("erreur");
                 } else {
-                  numfacend = parseInt(result[0].invoice.slice(5));
-                  // numfacend = parseInt(result[0].invoice.split('0')[2]);
-                  newfacend = numfacend + 1;
-                  invoice = `FAB00${newfacend}`;
-                  res.send(invoice);
+                  res.send("succès");
+                }
+              }
+            );
+          });
+        }
+      });
+    }
+    //   else {
+    //       res.json({auth: false, message: "L'utilisateur n'existe pas" });
+    //       // res.send({ message: "L'utilisateur n'existe pas"});
+    //   }
+  });
+});
+//récupérer les images slidantes
+app.get("/recup_lvc_img_silde", (req, res) => {
+  db.query("SELECT * FROM lvc_img_slide", (err, result) => {
+    if (err) {
+      res.send("Erreur de recup");
+    } else {
+      res.send(result);
+    }
+  });
+});
+/* envoi d'image slidante */
+app.put("/ajout_img_slide/:imgIndex", async (req, res) => {
+  const imgIndex = req.params.imgIndex;
+  let upload = multer({ storage: storagelvc }).single("avatar");
+
+  upload(req, res, function (err) {
+    // req.file contains information of uploaded file
+    // req.body contains information of text fields
+
+    if (!req.file) {
+      return res.send("Please select an image to upload");
+    } else if (err instanceof multer.MulterError) {
+      return res.send(err);
+    } else if (err) {
+      return res.send(err);
+    }
+
+    let classifiedsadd = { image1: req.file.filename };
+
+    if (imgIndex == 1) {
+      classifiedsadd = {
+        image1:
+          "https://backend-versatilekills.benindigital.com/lvcpic/" +
+          req.file.filename,
+      };
+    }
+    if (imgIndex == 2) {
+      classifiedsadd = {
+        image2:
+          "https://backend-versatilekills.benindigital.com/lvcpic/" +
+          req.file.filename,
+      };
+    }
+    if (imgIndex == 3) {
+      classifiedsadd = {
+        image3:
+          "https://backend-versatilekills.benindigital.com/lvcpic/" +
+          req.file.filename,
+      };
+    }
+    if (imgIndex == 4) {
+      classifiedsadd = {
+        image4:
+          "https://backend-versatilekills.benindigital.com/lvcpic/" +
+          req.file.filename,
+      };
+    }
+    if (imgIndex == 5) {
+      classifiedsadd = {
+        image5:
+          "https://backend-versatilekills.benindigital.com/lvcpic/" +
+          req.file.filename,
+      };
+    }
+
+    db.query("SELECT * FROM lvc_img_slide", (err, result) => {
+      if (err) {
+        fs.unlink("lvcpic/" + req.file.filename, (err) => {
+          if (err) {
+            console.error(err);
+            return;
+          }
+
+          //file removed
+        });
+        res.send("Erreur d'envoi image");
+      } else {
+        if (result.length > 0) {
+          db.query(
+            "UPDATE lvc_img_slide SET ? WHERE id = ?",
+            [classifiedsadd, 1],
+            (err, result) => {
+              if (err) {
+                // console.log(err);
+                fs.unlink("lvcpic/" + req.file.filename, (err) => {
+                  if (err) {
+                    console.error(err);
+                    return;
+                  }
+
+                  //file removed
+                });
+                res.send("Erreur d'envoi image update");
+              } else {
+                res.send("Image ajout succès");
+              }
+            }
+          );
+        } else {
+          if (imgIndex == 1) {
+            db.query(
+              "INSERT INTO lvc_img_slide (image1) VALUES (?)",
+              [
+                "https://backend-versatilekills.benindigital.com/lvcpic/" +
+                  req.file.filename,
+              ],
+              (err, result) => {
+                if (err) {
+                  // console.log(err);
+                  fs.unlink("lvcpic/" + req.file.filename, (err) => {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
+
+                    //file removed
+                  });
+                  res.send("Erreur d'envoi image");
+                } else {
+                  res.send("Image ajout succès");
                 }
               }
             );
           }
-        });
-      } else {
-        invoice = "FAB001";
-        res.send(invoice);
-      }
-    }
-  });
-});
-/* ajouter au panier */
-app.post("/addcart", (req, res) => {
-  const product_id = req.body.product_id;
-  const product_quantity = req.body.product_quantity;
-  const product_name = req.body.product_name;
-  const unite_price = req.body.unite_price;
-  const total_price = req.body.total_price;
-  const picture = req.body.picture;
-  const invoice = req.body.invoice;
-  const whatsapp = req.body.num;
+          if (imgIndex == 2) {
+            db.query(
+              "INSERT INTO lvc_img_slide (image2) VALUES (?)",
+              [
+                "https://backend-versatilekills.benindigital.com/lvcpic/" +
+                  req.file.filename,
+              ],
+              (err, result) => {
+                if (err) {
+                  // console.log(err);
+                  fs.unlink("lvcpic/" + req.file.filename, (err) => {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
 
-  db.query(
-    "INSERT INTO commands (product_id, product_quantity, product_name, unite_price, total_price, picture, invoice, whatsapp) VALUES (?,?,?,?,?,?,?,?)",
-    [
-      product_id,
-      product_quantity,
-      product_name,
-      unite_price,
-      total_price,
-      picture,
-      invoice,
-      whatsapp,
-    ],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("Values Inserted");
-      }
-    }
-  );
-});
-/* obtenir la liste des commandes validées par l'utilisateur */
-app.post("/historique", (req, res) => {
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT * FROM commands WHERE invoice = ?",
-    [invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-/* recupérer le status d'une commande déjà passer */
-app.post("/recupStatusCommand", (req, res) => {
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT status_id_command FROM commands WHERE invoice = ?",
-    [invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // res.send(result);
-        db.query(
-          "SELECT libeller FROM statuscommande WHERE id = ?",
-          [result[0]],
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.send(result);
-            }
+                    //file removed
+                  });
+                  res.send("Erreur d'envoi image");
+                } else {
+                  res.send("Image ajout succès");
+                }
+              }
+            );
           }
-        );
-      }
-    }
-  );
-});
-/* obtenir la liste des commandes */
-app.post("/getcommands", (req, res) => {
-  const statut = 0;
-  db.query(
-    "SELECT * FROM commands WHERE statut = ?",
-    [statut],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-/*suppression d'un éléments du panier */
-app.delete("/supprimerduPanier/:id", (req, res) => {
-  const id = req.params.id;
-  db.query("DELETE FROM commands WHERE id = ?", id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("succes");
-      res.send(result);
-    }
-  });
-});
-/*validation de la commande */
-app.post("/updatecart", (req, res) => {
-  const invoice = req.body.invoice;
-  const total_price = req.body.total_price;
-  const total_quantity = req.body.total_quantity;
-  const num = req.body.num;
+          if (imgIndex == 3) {
+            db.query(
+              "INSERT INTO lvc_img_slide (image3) VALUES (?)",
+              [
+                "https://backend-versatilekills.benindigital.com/lvcpic/" +
+                  req.file.filename,
+              ],
+              (err, result) => {
+                if (err) {
+                  // console.log(err);
+                  fs.unlink("lvcpic/" + req.file.filename, (err) => {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
 
-  db.query(
-    "INSERT INTO command_validation (total_quantity, total_price, invoice, whatsapp) VALUES (?,?,?,?)",
-    [total_quantity, total_price, invoice, num],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // res.send("Values Inserted");
-        db.query(
-          "SELECT date FROM command_validation WHERE invoice = ?",
-          [invoice],
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.send(result);
-            }
+                    //file removed
+                  });
+                  res.send("Erreur d'envoi image");
+                } else {
+                  res.send("Image ajout succès");
+                }
+              }
+            );
           }
-        );
-      }
-    }
-  );
-});
-/* rechercher une commande */
-app.post("/recherchcommand", (req, res) => {
-  const product_id = req.body.product_id;
-  const statut = 0;
-  db.query(
-    "SELECT * FROM commands WHERE product_id = ? AND statut = ?",
-    [product_id, statut],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-/*mise à jour de la quantité de produit commander */
-app.put("/updatecommand", (req, res) => {
-  const id = req.body.id;
-  const product_quantity = req.body.product_quantity;
-  const total_price = req.body.total_price;
+          if (imgIndex == 4) {
+            db.query(
+              "INSERT INTO lvc_img_slide (image4) VALUES (?)",
+              [
+                "https://backend-versatilekills.benindigital.com/lvcpic/" +
+                  req.file.filename,
+              ],
+              (err, result) => {
+                if (err) {
+                  // console.log(err);
+                  fs.unlink("lvcpic/" + req.file.filename, (err) => {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
 
-  db.query(
-    "UPDATE commands SET product_quantity = ?, total_price = ? WHERE id = ?",
-    [product_quantity, total_price, id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // console.log('succes');
-        res.send("Values Inserted");
-      }
-    }
-  );
-});
+                    //file removed
+                  });
+                  res.send("Erreur d'envoi image");
+                } else {
+                  res.send("Image ajout succès");
+                }
+              }
+            );
+          }
+          if (imgIndex == 5) {
+            db.query(
+              "INSERT INTO lvc_img_slide (image5) VALUES (?)",
+              [
+                "https://backend-versatilekills.benindigital.com/lvcpic/" +
+                  req.file.filename,
+              ],
+              (err, result) => {
+                if (err) {
+                  // console.log(err);
+                  fs.unlink("lvcpic/" + req.file.filename, (err) => {
+                    if (err) {
+                      console.error(err);
+                      return;
+                    }
 
-//******************************************************     vital     *****************************************************************
-
-// REST API CURD
-
-app.get("/api", (req, res) => {
-  res.send("Api working");
-});
-
-// Create data
-
-app.post("/api/create/:nom/:prenom", (req, res) => {
-  console.log(req.body);
-  console.log(req.params.nom);
-  console.log(req.params.prenom);
-  // const nom = req.body.nom
-  // const prenom = req.body.prenom
-  const nom = req.params.nom;
-  const prenom = req.params.prenom;
-
-  // sql query
-
-  let sql = ` INSERT INTO todotbl(nom, prenom)
-                VALUES('${nom}', '${prenom}')
-               `;
-  // run query
-  db.query(sql, (err, result) => {
-    if (err) throw err;
-    res.send("data inserted");
-  });
-});
-
-// Read data
-app.get("/api/read", (req, res) => {
-  // sql query
-  let val = 50;
-  let sql = `SELECT * FROM products where like_number > ?`;
-  // run query
-  db.query(
-    `SELECT * FROM products where like_number > ? `,
-    val,
-    (err, result) => {
-      if (err) throw err;
-      res.send(result);
-    }
-  );
-});
-
-app.get("/api/reader", (req, res) => {
-  // sql query
-  let val = 50;
-  let sql = `SELECT * FROM products where like_number > ?`;
-  // run query
-  db.query(
-    `SELECT * FROM products where like_number < ? `,
-    val,
-    (err, result) => {
-      if (err) throw err;
-      res.send(result);
-    }
-  );
-});
-
-// Read single data
-app.get("/api/reading", (req, res) => {
-  console.log(req.body.id);
-  const id = req.body.id;
-  // sql query
-  let sql = `SELECT * FROM todotbl`;
-  // run query
-  db.query(sql, (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-// update single data
-
-app.put("/api/update/:id/:nom/:prenom", (req, res) => {
-  console.log(req.params);
-  const id = req.params.id;
-  const nom = req.params.nom;
-  const prenom = req.params.prenom;
-  // sql query
-
-  db.query(
-    "UPDATE todotbl SET nom = ?, prenom = ? WHERE id = ? ",
-    [nom, prenom, id],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-        //  throw err;
-      } else {
-        res.send("data updated");
-      }
-    }
-  );
-});
-
-// delete single data
-
-app.delete("/api/delete/:id", (req, res) => {
-  const id = req.params.id;
-  // sql query
-
-  db.query("DELETE FROM todotbl WHERE id = ?", id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send("data deleted");
-      // res.send(result);
-    }
-  });
-});
-
-app.get("/invoice", (req, res) => {
-  // sql query
-  let idmax;
-  let lastinvoice;
-  //let sql = `SELECT * FROM todotbl`;
-  // run query
-  db.query("SELECT MAX(id) AS TOTA FROM command_validation", (err, result) => {
-    if (err) throw err;
-    idmax = result[0].TOTA;
-    // db.query("SELECT invoice FROM command_validation WHERE id = ?",idmax,(err,result)=>{
-    //     if(err) throw err;
-    //     console.log(result[0].invoice);
-    // });
-
-    res.send(`${idmax}`);
-  });
-});
-
-app.get("/invoicee", (req, res) => {
-  // sql query
-  let idmax;
-  let status = 1;
-  //let sql = `SELECT * FROM todotbl`;
-  // run query
-  db.query("SELECT MAX(id) AS TOTA FROM commands", (err, result) => {
-    if (err) throw err;
-    idmax = result[0].TOTA;
-    db.query(
-      "SELECT statut FROM commands WHERE id = ?",
-      idmax,
-      (err, result) => {
-        if (err) throw err;
-        status = result[0].statut;
-        if (status == 0) {
-          let hac = 0;
-          console.log("pas nouvelle facture");
-          res.send(`${hac}`);
-        } else {
-          let hac = 1;
-          console.log("nouvelle facture");
-          res.send(`${hac}`);
-        }
-        //console.log(result[0].statut);
-      }
-    );
-    // res.send(`${idmax}`);
-  });
-});
-
-app.get("/cherchernumfaclast", (req, res) => {
-  // sql query
-  let idmax;
-
-  db.query("SELECT MAX(id) AS TOTA FROM commands", (err, result) => {
-    if (err) throw err;
-    idmax = result[0].TOTA;
-    db.query(
-      "SELECT invoice FROM commands WHERE id = ?",
-      idmax,
-      (err, result) => {
-        if (err) throw err;
-        invoicer = result[0].invoice;
-        res.send(`${invoicer}`);
-      }
-    );
-    // res.send(`${idmax}`);
-  });
-});
-
-app.get("/exitcont", (req, res) => {
-  db.query("SELECT * FROM commands", (err, result) => {
-    if (err) throw err;
-    numRows = result.length;
-    console.log(numRows);
-    res.send(`${numRows}`);
-  });
-});
-
-app.get("/nombrartpan", (req, res) => {
-  let idmax;
-  db.query("SELECT MAX(id) AS TOTA FROM commands ", (err, result) => {
-    if (err) throw err;
-    idmax = result[0].TOTA;
-    db.query(
-      "SELECT invoice,statut FROM commands WHERE id = ?",
-      idmax,
-      (err, result) => {
-        if (err) throw err;
-        console.log(result[0].invoice);
-        console.log(result[0].statut);
-        let stat = result[0].statut;
-        let inv = result[0].invoice;
-        if (stat == 0) {
-          db.query(
-            "SELECT invoice FROM commands where invoice=?",
-            inv,
-            (err, result) => {
-              if (err) throw err;
-              numRows = result.length;
-              console.log(numRows);
-              res.send(`${numRows}`);
-            }
-          );
-        } else {
-          res.send("");
+                    //file removed
+                  });
+                  res.send("Erreur d'envoi image");
+                } else {
+                  res.send("Image ajout succès");
+                }
+              }
+            );
+          }
         }
       }
-    );
-  });
-});
-
-app.post("/exitart", (req, res) => {
-  const nfac = req.body.nfac;
-  const product_name = req.body.product_name;
-  db.query(
-    "SELECT product_name FROM commands where invoice=? and product_name=?",
-    [nfac, product_name],
-    (err, result) => {
-      if (err) throw err;
-      numRows = result.length;
-      console.log(numRows);
-      res.send(`${numRows}`);
-    }
-  );
-});
-app.post(
-  "/createcommand/:statut/:product_id/:product_name/:unite_price/:product_quantity/:total_price/:invoice/:picture",
-  (req, res) => {
-    const statut = req.params.statut;
-    const product_id = req.params.product_id;
-    const product_name = req.params.product_name;
-    const unite_price = req.params.unite_price;
-    const product_quantity = req.params.product_quantity;
-    const total_price = req.params.total_price;
-    const invoice = req.params.invoice;
-    const picture = req.params.picture;
-
-    let sql = ` INSERT INTO commands(statut, product_id, product_name, unite_price, product_quantity, total_price, invoice, picture)
-                VALUES('${statut}', '${product_id}', '${product_name}', '${unite_price}', '${product_quantity}', '${total_price}', '${invoice}', '${picture}')
-               `;
-    // run query
-    db.query(sql, (err, result) => {
-      if (err) throw err;
-      res.send("produit ajouter au panier");
     });
-  }
-);
-
-app.post("/api/createe", (req, res) => {
-  const statut = req.body.statut;
-  const product_id = req.body.product_id;
-  const product_name = req.body.product_name;
-  const unite_price = req.body.unite_price;
-  const product_quantity = req.body.product_quantity;
-  const total_price = req.body.total_price;
-  const invoice = req.body.invoice;
-  const picture = req.body.picture;
-
-  let sql = ` INSERT INTO commands(statut, product_id, product_name, unite_price, product_quantity, total_price, invoice, picture)
-                VALUES('${statut}', '${product_id}', '${product_name}', '${unite_price}', '${product_quantity}', '${total_price}', '${invoice}', '${picture}')
-               `;
-  // run query
-  db.query(sql, (err, result) => {
-    if (err) throw err;
-    res.send("produit ajouter au panier");
   });
 });
-
-app.get("/recuppan", (req, res) => {
-  let idmax;
-  db.query("SELECT MAX(id) AS TOTA FROM commands ", (err, result) => {
-    if (err) throw err;
-    idmax = result[0].TOTA;
-    db.query(
-      "SELECT invoice,statut FROM commands WHERE id = ?",
-      idmax,
-      (err, result) => {
-        if (err) throw err;
-        console.log(result[0].invoice);
-        console.log(result[0].statut);
-        let stat = result[0].statut;
-        let inv = result[0].invoice;
-        if (stat == 0) {
-          db.query(
-            "SELECT * FROM commands where invoice=?",
-            inv,
-            (err, result) => {
-              if (err) throw err;
-              numRows = result.length;
-              console.log(result);
-              res.send(result);
-            }
-          );
-        } else {
-          res.send("");
-        }
-      }
-    );
-  });
-});
-
-app.post("/nectar", (req, res) => {
-  const id = req.body.id;
-  db.query(
-    "SELECT unite_price FROM commands WHERE id = ?",
-    id,
-    (err, result) => {
-      if (err) throw err;
-      console.log(result[0].unite_price);
-      res.send(result[0].unite_price + "");
-    }
-  );
-});
-
-app.get("/totalprice", (req, res) => {
-  let idmax;
-  let total_price;
-  db.query("SELECT MAX(id) AS TOTA FROM commands ", (err, result) => {
-    if (err) throw err;
-    idmax = result[0].TOTA;
-    db.query(
-      "SELECT invoice,statut FROM commands WHERE id = ?",
-      idmax,
-      (err, result) => {
-        if (err) throw err;
-        console.log(result[0].invoice);
-        console.log(result[0].statut);
-        let stat = result[0].statut;
-        let inv = result[0].invoice;
-        if (stat == 0) {
-          db.query(
-            "SELECT SUM(total_price) AS prix_total FROM commands where invoice=?",
-            inv,
-            (err, result) => {
-              if (err) throw err;
-              numRows = result.length;
-              console.log(result[0].prix_total);
-              total_price = result[0].prix_total;
-              console.log(total_price);
-              res.send(total_price + "");
-            }
-          );
-        } else {
-          res.send("");
-        }
-      }
-    );
-  });
-});
-
-app.get("/api/readingsim1", (req, res) => {
-  console.log(req.body.id);
-  const id = req.body.id;
-  // sql query
-  let sql = `SELECT * FROM todotbl WHERE simchoice = ?`;
-  // run query
-  db.query(sql, 0, (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-app.get("/api/readingsim2", (req, res) => {
-  console.log(req.body.id);
-  const id = req.body.id;
-  // sql query
-  let sql = `SELECT * FROM todotbl WHERE simchoice = ?`;
-  // run query
-  db.query(sql, 1, (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.get("/api/readinglast", (req, res) => {
-  console.log(req.body.id);
-  const id = req.body.id;
-  // sql query
-  let sql = `SELECT * FROM todotbl ORDER BY id DESC LIMIT 10`;
-  // run query
-  db.query(sql, 0, (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.get("/api/readingmarch", (req, res) => {
-  console.log(req.body.id);
-  const id = req.body.id;
-  // sql query
-  let sql = `SELECT * FROM marchand`;
-  // run query
-  db.query(sql, (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
-});
-
-app.post("/addussd", (req, res) => {
-  const libeler = req.body.libeler;
-  const codeussd = req.body.codeussd;
-  const simchoice = req.body.simchoice;
-  db.query(
-    "INSERT INTO todotbl (libeler, codeussd, simchoice) VALUES (?,?,?)",
-    [libeler, codeussd, simchoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("code ussd ajouter avec  succes");
-      }
-    }
-  );
-});
-
-app.post("/addmarchand", (req, res) => {
-  const nommarchand = req.body.nommarchand;
-  const idmarchand = req.body.idmarchand;
-  const simchoice = req.body.simchoice;
-  db.query(
-    "INSERT INTO marchand (nom_marchand, id_marchand, simchoice) VALUES (?,?,?)",
-    [nommarchand, idmarchand, simchoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("Marchand crée avec  succes");
-      }
-    }
-  );
-});
-
-app.delete("/delussd", (req, res) => {
-  const id = req.body.id;
-  db.query("DELETE FROM todotbl WHERE id = ?", id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("succes");
-      res.send("code ussd supprimer avec  succes");
-    }
-  });
-});
-
-/************************************************************************************vital shop back ***********************************************************************/
-
-app.delete("/delarticle", (req, res) => {
-  const id = req.body.id;
-  db.query("DELETE FROM products WHERE id = ?", id, (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      console.log("succes");
-      res.send("succes");
-    }
-  });
-});
-//récupération des commandes en cours
-app.get("/commandecours", (req, res) => {
-  const statut = 1;
-  db.query(
-    "SELECT invoice,whatsapp,command_date,livraison_date,customer_id, SUM(total_price) AS TOTALPRICE , SUM(product_quantity) AS TOTALQUANTITE,status_id_command,product_id,verifvalid FROM commands WHERE status_id_command = ?  GROUP BY invoice LIMIT 5",
-    statut,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//récupération des commandes en cours
-app.get("/commandecourstous", (req, res) => {
-  const statut = 1;
-  db.query(
-    "SELECT invoice,whatsapp,command_date,livraison_date,customer_id, SUM(total_price) AS TOTALPRICE , SUM(product_quantity) AS TOTALQUANTITE,status_id_command,product_id,verifvalid FROM commands GROUP BY invoice ASC",
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.post("/detailscommandecours", (req, res) => {
-  const invoice = req.body.invoice;
-  const status_id_command = req.body.status_id_command;
-  db.query(
-    "SELECT product_name,invoice,whatsapp,command_date,livraison_date,customer_id, product_quantity , total_price, picture,status_id_command,product_id,verifvalid FROM commands WHERE invoice = ? and status_id_command = ?",
-    [invoice, status_id_command],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//récupération des approvisionnement en cours
-app.get("/approcours", (req, res) => {
-  const statut = 0;
-  db.query(
-    "SELECT invoice, appro_date, SUM(total_price) AS TOTALPRICE , SUM(stock_appro) AS TOTALQUANTITE, verif_appro FROM approvionnement WHERE verif_appro = ?  GROUP BY invoice LIMIT 5",
-    statut,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//récupération des approvisionnement en cours
-app.get("/approcourstous1", (req, res) => {
-  const statut = 0;
-  db.query(
-    "SELECT invoice, appro_date, SUM(total_price) AS TOTALPRICE , SUM(stock_appro) AS TOTALQUANTITE, verif_appro FROM approvionnement WHERE verif_appro = ? GROUP BY invoice ASC",
-    statut,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-//récupération des approvisionnement en cours
-app.get("/approcourstous2", (req, res) => {
-  const statut = 1;
-  db.query(
-    "SELECT invoice, appro_date, SUM(total_price) AS TOTALPRICE , SUM(stock_appro) AS TOTALQUANTITE, verif_appro FROM approvionnement WHERE verif_appro = ? GROUP BY invoice ASC",
-    statut,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.post("/detailsapprocours", (req, res) => {
-  const invoice = req.body.invoice;
-  const verif_appro = req.body.verif_appro;
-  db.query(
-    "SELECT product_id,product_name,invoice,appro_date,boutique_id,total_price,stock_appro, stock_preview , verif_appro, picture FROM approvionnement WHERE invoice = ? and verif_appro = ?",
-    [invoice, verif_appro],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.put("/changestatus", (req, res) => {
-  const invoice = req.body.invoice;
-  const status_id_command = req.body.status_id_command;
-  db.query(
-    "UPDATE commands SET status_id_command = ? WHERE invoice = ? ",
-    [status_id_command, invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        // res.send("succes");
-        db.query(
-          "UPDATE command_validation SET status_id_command = ? WHERE invoice = ? ",
-          [status_id_command, invoice],
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.send("succes");
-            }
-          }
-        );
-      }
-    }
-  );
-});
-
-app.post("/recupverifcommand", (req, res) => {
-  const statut = 1;
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT verifvalid FROM commands where invoice = ?",
-    [invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.post("/recupverifappro", (req, res) => {
-  const statut = 1;
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT verif_appro FROM approvionnement where invoice = ?",
-    [invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-app.put("/updateverifvalidcommande", (req, res) => {
-  const verifvalid = req.body.verifvalid;
-  const invoice = req.body.invoice;
-  db.query(
-    "UPDATE commands SET verifvalid = ? WHERE invoice = ? ",
-    [verifvalid, invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        //res.send("succes");
-        db.query(
-          "UPDATE command_validation SET verifvalid = ? WHERE invoice = ? ",
-          [verifvalid, invoice],
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.send("succes");
-            }
-          }
-        );
-      }
-    }
-  );
-});
-
-app.put("/updateverifvalidappro", (req, res) => {
-  const verif_appro = req.body.verif_appro;
-  const invoice = req.body.invoice;
-  db.query(
-    "UPDATE approvionnement SET verif_appro = ? WHERE invoice = ? ",
-    [verif_appro, invoice],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        //res.send("succes");
-        db.query(
-          "UPDATE approvisionnement_validation SET verif_appro = ? WHERE invoice = ? ",
-          [verif_appro, invoice],
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              res.send("succes");
-            }
-          }
-        );
-      }
-    }
-  );
-});
-
-app.put("/changestockcommande", (req, res) => {
-  const id_product = req.body.id_product;
-  const invoice = req.body.invoice;
-  let stockinit = 0;
-  let quantcommand = 0;
-  let stockupdate = 0;
-  db.query(
-    "SELECT stock FROM products  WHERE id = ? ",
-    id_product,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        //res.send(result);
-        stockinit = result[0].stock;
-        db.query(
-          "SELECT product_quantity FROM commands  WHERE product_id = ? and invoice = ?",
-          [id_product, invoice],
-          (err, resulta) => {
-            if (err) {
-              console.log(err);
-            } else {
-              //res.send(result);
-              quantcommand = resulta[0].product_quantity;
-              stockupdate = stockinit - quantcommand;
-              db.query(
-                "UPDATE products SET stock = ? WHERE id = ? ",
-                [stockupdate, id_product],
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    // res.send(` stock mis a jour le stock inital est ${stockinit} et la quantite commander est ${quantcommand} et le nouveau stock a mettre a jour est ${stockupdate}`);
-                    res.send("success");
-                  }
-                }
-              );
-            }
-          }
-        );
-      }
-    }
-  );
-});
-
-app.put("/changestockappro", (req, res) => {
-  const id_product = req.body.id_product;
-  const invoice = req.body.invoice;
-  let stockinit = 0;
-  let quantcommand = 0;
-  let stockupdate = 0;
-  db.query(
-    "SELECT stock FROM products  WHERE id = ? ",
-    id_product,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        //res.send(result);
-        stockinit = result[0].stock;
-        db.query(
-          "SELECT stock_appro FROM approvionnement  WHERE product_id = ? and invoice = ?",
-          [id_product, invoice],
-          (err, resulta) => {
-            if (err) {
-              console.log(err);
-            } else {
-              //res.send(result);
-              quantappro = resulta[0].stock_appro;
-              stockupdate = stockinit + quantappro;
-              db.query(
-                "UPDATE products SET stock = ? WHERE id = ? ",
-                [stockupdate, id_product],
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    // res.send(` stock mis a jour le stock inital est ${stockinit} et la quantite commander est ${quantcommand} et le nouveau stock a mettre a jour est ${stockupdate}`);
-                    res.send("success");
-                  }
-                }
-              );
-            }
-          }
-        );
-      }
-    }
-  );
-});
-app.get("/recupe_status_command", (req, res) => {
-  db.query("SELECT * FROM statuscommande", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-app.get("/recupe_commandd", (req, res) => {
-  db.query("SELECT * FROM commands", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//creation d'une commande valider
-
-app.post("/creat_command_validation", (req, res) => {
-  const invoice = req.body.invoice;
-  const product_quantity = req.body.product_quantity;
-  const total_price = req.body.total_price;
-  const whatsapp = req.body.num;
-  db.query(
-    "insert into command_validation(invoice, total_quantity, total_price, whatsapp) values (?, ?, ?, ?)",
-    [invoice, product_quantity, total_price, whatsapp],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("success");
-      }
-    }
-  );
-});
-
-//bilan journalier
-app.post("/bilan_day", (req, res) => {
-  const datee = req.body.date;
-  //const date = "2022-06-30";
-  var mois = "";
-  var today = new Date();
-  //   var date =
-  //     today.getFullYear() +
-  //     "-" +
-  //     0 +
-  //     (today.getMonth() + 1) +
-  //     "-" +
-  //     0 +
-  //     today.getDate();
-  if (String(today).split(" ")[1] == "Jan") {
-    mois = "01";
-  } else if (String(today).split(" ")[1] == "Feb") {
-    mois = "02";
-  } else if (String(today).split(" ")[1] == "Mar") {
-    mois = "03";
-  } else if (String(today).split(" ")[1] == "Apr") {
-    mois = "04";
-  } else if (String(today).split(" ")[1] == "May") {
-    mois = "05";
-  } else if (String(today).split(" ")[1] == "Jun") {
-    mois = "06";
-  } else if (String(today).split(" ")[1] == "Jul") {
-    mois = "07";
-  } else if (String(today).split(" ")[1] == "Aug") {
-    mois = "08";
-  } else if (String(today).split(" ")[1] == "Sep") {
-    mois = "09";
-  } else if (String(today).split(" ")[1] == "Oct") {
-    mois = "10";
-  } else if (String(today).split(" ")[1] == "Nov") {
-    mois = "11";
-  } else if (String(today).split(" ")[1] == "Dec") {
-    mois = "12";
-  }
-  console.log(
-    `L'année est ${String(today).split(" ")[3]} et le jour est ${
-      String(today).split(" ")[2]
-    } et le mois est ${mois}`
-  );
-  console.log("" + today);
-  var date = `${String(today).split(" ")[3]}-${mois}-${
-    String(today).split(" ")[2]
-  }`;
-  console.log(date);
-  const status_comand = req.body.status_comand;
-  db.query(
-    "SELECT product_id, product_name, SUM(total_price) AS TOTAL,  SUM(product_quantity) AS QUANTITE FROM commands WHERE command_date = ? and `status_id_command` = ? GROUP BY product_name",
-    [date, status_comand],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//bilan periodique
-app.post("/bilan_periodique", (req, res) => {
-  const date1 = req.body.date1;
-  const date2 = req.body.date2;
-  const status_comand = req.body.status_comand;
-  db.query(
-    "SELECT product_id, product_name, SUM(total_price) AS TOTAL,  SUM(product_quantity) AS QUANTITE FROM commands  WHERE command_date BETWEEN  ? and ?  and status_id_command = ? GROUP BY product_name",
-    [date1, date2, status_comand],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste cost and price
-app.post("/costandprice", (req, res) => {
-  const id = req.body.id;
-  db.query(
-    "SELECT price, cost FROM products  WHERE id = ? ",
-    id,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-/* obtenir l'invoice*/
-app.get("/getInvoiceappro", (req, res) => {
-  let invoice = "";
-  let nbrligne = 0;
-  let numfacend = 0;
-  let newfacend = 0;
-  db.query("SELECT * FROM  approvionnement", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      nbrligne = result.length;
-      if (nbrligne > 0) {
-        db.query(
-          "SELECT MAX(id) AS TOTA FROM  approvionnement",
-          (err, result) => {
-            if (err) {
-              console.log(err);
-            } else {
-              db.query(
-                "SELECT * FROM  approvionnement WHERE id = ?",
-                [result[0].TOTA],
-                (err, result) => {
-                  if (err) {
-                    console.log(err);
-                  } else {
-                    numfacend = parseInt(result[0].invoice.slice(5));
-                    // numfacend = parseInt(result[0].invoice.split('0')[2]);
-                    newfacend = numfacend + 1;
-                    invoice = `FAB00${newfacend}`;
-                    res.send(invoice);
-                  }
-                }
-              );
-            }
-          }
-        );
-      } else {
-        invoice = "FAB001";
-        res.send(invoice);
-      }
-    }
-  });
-});
-/* ajouter au panier  approvisionnement*/
-app.post("/addcartappro", (req, res) => {
-  const product_id = req.body.product_id;
-  const product_quantity = req.body.product_quantity;
-  const product_name = req.body.product_name;
-  const unite_price = req.body.unite_price;
-  const total_price = req.body.total_price;
-  const picture = req.body.picture;
-  const invoice = req.body.invoice;
-  const stockprev = req.body.stockprev;
-  const whatsapp = req.body.num;
-
-  db.query(
-    "INSERT INTO  approvionnement (product_id, stock_appro, product_name, unite_price, total_price, picture, invoice, stock_preview) VALUES (?,?,?,?,?,?,?,?)",
-    [
-      product_id,
-      product_quantity,
-      product_name,
-      unite_price,
-      total_price,
-      picture,
-      invoice,
-      stockprev,
-    ],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("Values Inserted");
-      }
-    }
-  );
-});
-
-//creation d'une approvisionnement
-
-app.post("/creat_appro_validation", (req, res) => {
-  const invoice = req.body.invoice;
-  const product_quantity = req.body.product_quantity;
-  const total_price = req.body.total_price;
-  const whatsapp = req.body.num;
-  db.query(
-    "insert into approvisionnement_validation(invoice, total_quantity, total_price) values (?, ?, ?)",
-    [invoice, product_quantity, total_price],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("success");
-      }
-    }
-  );
-});
-
-app.post("/recherchermed", (req, res) => {
-  const nom = req.body.nom;
-
-  db.query(
-    "SELECT * FROM medecin  WHERE nom LIKE '%" + nom + "%'",
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste des articles par ordre croissant
-app.get("/afficheartcroiss", (req, res) => {
-  db.query("SELECT * FROM products ORDER BY name ASC", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//liste des articles par categorie
-app.post("/articlecateg", (req, res) => {
-  const idcat = req.body.idcat;
-
-  db.query(
-    "SELECT * FROM products  WHERE category_id =?",
-    idcat,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste des commandes
-app.get("/affichecommande", (req, res) => {
-  db.query("SELECT * FROM command_validation", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-//liste des commandes validées
-app.get("/affichecomv", (req, res) => {
-  db.query(
-    "SELECT * FROM command_validation WHERE statut =1 ",
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-
-//liste articles par commande
-app.post("/afficheartcom", (req, res) => {
-  const invoice = req.body.invoice;
-  db.query(
-    "SELECT * FROM commands WHERE invoice =? ",
-    invoice,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send(result);
-      }
-    }
-  );
-});
-//mise à jour satut
-app.post("/majstatut", (req, res) => {
-  const invoice = req.body.invoice;
-  db.query(
-    "UPDATE command_validation SET statut = 1 WHERE invoice =? ",
-    invoice,
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("success");
-      }
-    }
-  );
-});
-
-app.post("/licence_hash", (req, res) => {
-  const hash = req.body.hash;
-  /* const date_actu = req.body.date_actu */
-  db.query(
-    "insert into license(hash_code) values (?)",
-    [hash],
-    (err, result) => {
-      if (!err) {
-        res.send("success");
-      } else {
-        console.log(err);
-      }
-    }
-  );
-});
-
-//liste of hash
-app.get("/list_hash", (req, res) => {
-  db.query("SELECT * FROM license", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-//RECUP HEURE ACTUEL
-app.get("/date_time", (req, res) => {
-  db.query("SELECT NOW() as time_actu", (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
-    }
-  });
-});
-
-// {/* -Fichier server qui se charge de gérer l'envoi des requêtes de recherche depuis le programme à la base de donnée créée
-// */}
-// const express = require('express');
-// const app = express();
-// const mysql = require('mysql');
-// const cors = require('cors');
-
-// require("dotenv").config();
-
-// app.use(cors()); {/* -La mise en place de son environnement nécessite l'installation de certains packets  */ }
-// app.use(express.json());
-
-// const db = mysql.createConnection({
-//     user: 'root',
-//     host: 'localhost',
-//     password: '',
-//     database: 'company',
-// })
-// db.connect(function (error) {
-//     if(error){
-//         console.log(error);
-//         return;
-//     } else {
-//         console.log('Database is connected');
-//     }
-// });
-
-// app.get('/', (req, res) => {
-//             res.json({'message':'OK'});
-// });
-// app.get('/users', (req, res) => {
-//     db.query('select * from user', (error, rows, fields) => {
-//         if(!error) {
-//             res.json(rows);
-//         } else {
-//             console.log(error);
-//         }
-//     });
-// });
-
-// //This function allows us concatenate 'id' to url => localhost:4000/id
-// app.get('/users/:id', (req, res) => {
-//     const { id } = req.params;
-//     db.query('select * from user where id = ?', [id], (error, rows, fields) => {
-//         if(!error) {
-//             res.json(rows);
-//         } else {
-//             console.log(error);
-//         }
-//     })
-// });
-
-// app.post('/createusers', (req, res) => {
-//     //const { id,  } = req.body;
-//     const username = req.params.username
-//     const name = req.params.name
-//     const lastname = req.params.lastname
-//     const mail = req.params.mail
-//     const randomstr = req.params.randomstr
-//     const hash = req.params.hash
-
-//     console.log(username, name, lastname, mail, randomstr, hash);
-//     db.query('insert into user(username, name, lastname, mail, randomstr, hash) values (?, ?, ?, ?, ?, ?)', [ username, name, lastname, mail, randomstr, hash], (error, rows, fields) => {
-//         if(!error) {
-//             res.json({Status : "User saved"})
-//         } else {
-//             console.log(error);
-//         }
-//     });
-// })
-
-// app.put('/updateusers/:id', (req, res) => {
-//     const { id, username, name, lastname, mail, randomstr, hash } = req.body;
-//     console.log(req.body);
-//     db.query('update user set username = ?, name = ?, lastname = ?, mail = ?, randomstr = ?, hash = ? where id = ?;',
-//     [username, name, lastname, mail, randomstr, hash, id], (error, rows, fields) => {
-//         if(!error){
-//             res.json({
-//                 Status: 'User updated'
-//             });
-//         } else {
-//             console.log(error);
-//         }
-//     });
-// });
-
-// app.delete('/deleteusers/:id', (req,res) => {
-//     const { id } = req.params;
-//     db.query('delete from user where id = ?', [id], (error, rows, fields) => {
-//         if(!error){
-//             res.json({
-//                 Status: "User deleted"
-//             });
-//         } else {
-//             res.json({
-//                 Status: error
-//             });
-//         }
-//     })
-// });
-// app.listen(8001, () => {
-//     console.log('server lancé')
-// })
-// // app.listen(process.env.PORT || 3001, () => {
-// //     console.log('server lancé')
-// // })

@@ -13,17 +13,19 @@ import Footer from "../components/Footer";
 import Footer3 from "../components/Footer3";
 import HappyClient from "../components/HappyClient";
 import Navbar_model2 from "../components/Navbar_model2";
-import Test from "../components/Test";
+import Profile from "../components/profileUtilisateur/Profile";
+// import Test from "../components/Test";
 
 const ProfileUtilisateur = () => {
     const [tab, setTab] = useState(JSON.parse(localStorage.getItem("userdata")))
     return ( 
         <>
             <Navbar_model2 />
-            <About />
-            <Test />
-            <HappyClient />
-            <Commentaire1 />
+            <Profile />
+            {/* <About /> */}
+            {/* <Test />
+            <HappyClient /> */}
+            {/* <Commentaire1 /> */}
             <Footer />
         </>
      );

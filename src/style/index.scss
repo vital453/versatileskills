@@ -11,3 +11,127 @@
 @import "./components/card2.scss";
 @import "./components/card4.scss";
 @import "./components/pagination.scss";
+@import "./page/login.scss";
+
+// test login lvc
+
+// @import "./vendor/animate/animate.css";
+// @import "./vendor/css-hamburgers/hamburgers.min.css";
+// @import "./vendor/select2/select2.min.css";
+// @import "./util.css";
+// @import "./main.css";
+// @import "../fonts/font-awesome-4.7.0/css/font-awesome.min.css";
+
+
+.chooseimg{
+    position: absolute;
+    top: 72%;
+    left:70%;
+}
+
+.pp {
+    line-height: 1.5;
+    height: 350px;
+    // display: flex;
+    // flex-direction: column;
+    // word-wrap: break-word;
+    // overflow-wrap: break-word;
+    // text-overflow: ellipsis;
+    overflow: scroll;
+    overflow-x: hidden;
+    // scrollbar-color:green red;
+    scrollbar-width: thin;
+    // white-space: nowrap;
+    // border: 1px solid red;
+  }
+.ppp {
+    height: 100%;
+    // display: flex;
+    // flex-direction: column;
+    // word-wrap: break-word;
+    overflow-wrap: break-word;
+    // text-overflow: ellipsis;
+    // scrollbar-color:green red;
+    // white-space: nowrap;
+    // border: 1px solid red;
+  }
+.hdm {
+    line-height: 1.5;
+    height: 460px;
+    // display: flex;
+    // flex-direction: column;
+    // word-wrap: break-word;
+    // overflow-wrap: break-word;
+    // text-overflow: ellipsis;
+    overflow: scroll;
+    overflow-x: hidden;
+    // scrollbar-color:green red;
+    scrollbar-width: thin;
+    // white-space: nowrap;
+    // border: 1px solid red;
+  }
+.hdi {
+    line-height: 1.5;
+    height: 270px;
+    // display: flex;
+    // flex-direction: column;
+    // word-wrap: break-word;
+    // overflow-wrap: break-word;
+    // text-overflow: ellipsis;
+    overflow: scroll;
+    overflow-x: hidden;
+    // scrollbar-color:green red;
+    scrollbar-width: thin;
+    // white-space: nowrap;
+    // border: 1px solid red;
+  }
+
+  .menu-supra{
+    display: flex;
+    justify-content: end;
+    align-items: end;
+  }
+  .menu-box{
+    position: relative;
+    height: 100px;
+    width: 200px;
+    top: 60px;
+    right: 5px;
+    // border: 1px solid red;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .menu{
+    box-shadow: 0px 0px 5px 0px #dcdcdc;
+    background-color: #fff;
+    height: fit-content;
+    padding: 20px;
+    margin: 10px;
+    transition: .7s;
+    width: 200px;
+    border-radius: 10px;
+    z-index: 3;
+  }
+.menu ul {
+  margin: 0;
+  padding: 0;
+  position: relative;
+  cursor: pointer;
+}
+.menu ul li {
+  list-style-type: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.menu ul li span {
+  width: 100%;
+  height: 40px;
+  padding: 5px;
+  line-height: 40px;
+  display: flex;
+  color: #666;
+  font-weight: 400;
+}

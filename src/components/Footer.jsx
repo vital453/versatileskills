@@ -11,29 +11,29 @@ import { Link } from "react-router-dom";
 const Footer = () => {
   return (
     <>
-      <div className="unslate_co--footer unslate_co--section">
+      <div className=" mt-0 unslate_co--footer unslate_co--section">
         <div className="container items-center justify-center">
           <hr className="text-gray-700" />
-          <div className=" w-12 h-12 rounded-full bg-icon-color2 verhaut">
-          <a href="#top" class="verhauticon">
-          <FaChevronUp className="relative top-4 text-white left-4 "/>
-        </a>
+          <div className="w-12 h-12 rounded-full bg-icon-color2 verhaut">
+            <a href="#top" className="verhauticon">
+              <FaChevronUp className="relative top-4 text-white left-4 " />
+            </a>
           </div>
         </div>
-        {/* <a href="#top" class="verhaut">
+        {/* <a href="#top" className="verhaut">
           <FaChevronUp className="relative top-4 text-black left-4 hover:text-blue-700"/>
         </a> */}
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-md-7">
-              
+
               <div className="footer-site-logo">
                 <a href="#">
-                  Versatile<span>.</span>
+                  Skills<span>.</span>
                 </a>
               </div>
 
-              <ul className="footer-site-social">
+              {/* <ul className="footer-site-social">
                 <li>
                   <a href="#">Facebook</a>
                 </li>
@@ -49,7 +49,7 @@ const Footer = () => {
                 <li>
                   <a href="#">Behance</a>
                 </li>
-              </ul>
+              </ul> */}
 
               <p className="site-copyright footbar">
                 {/* <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --> */}

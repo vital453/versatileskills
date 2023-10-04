@@ -21,15 +21,15 @@ const Footer3 = () => {
   return (
     <>
       <div className="site-footer slanted-footer">
-        <a href="#top" class="smoothscroll scroll-top">
+        <a href="#top" className="smoothscroll scroll-top">
           <FaChevronUp className="relative top-4 text-white left-4 hover:text-blue-700"/>
         </a>
 
-        <div class="container">
-          <div class="row mb-5">
-            <div class="col-6 col-md-3 mb-4 mb-md-0">
+        <div className="container">
+          <div className="row mb-5">
+            <div className="col-6 col-md-3 mb-4 mb-md-0">
               <h3>Scenic Products</h3>
-              <ul class="list-unstyled">
+              <ul className="list-unstyled">
                 <li>
                   <a href="#">Web Design</a>
                 </li>
@@ -44,9 +44,9 @@ const Footer3 = () => {
                 </li>
               </ul>
             </div>
-            <div class="col-6 col-md-3 mb-4 mb-md-0">
+            <div className="col-6 col-md-3 mb-4 mb-md-0">
               <h3>Company</h3>
-              <ul class="list-unstyled">
+              <ul className="list-unstyled">
                 <li>
                   <a href="#">About Us</a>
                 </li>
@@ -61,9 +61,9 @@ const Footer3 = () => {
                 </li>
               </ul>
             </div>
-            <div class="col-6 col-md-3 mb-4 mb-md-0">
+            <div className="col-6 col-md-3 mb-4 mb-md-0">
               <h3>Support</h3>
-              <ul class="list-unstyled">
+              <ul className="list-unstyled">
                 <li>
                   <a href="#">Support</a>
                 </li>
@@ -75,9 +75,9 @@ const Footer3 = () => {
                 </li>
               </ul>
             </div>
-            <div class="col-6 col-md-3 mb-4 mb-md-0">
+            <div className="col-6 col-md-3 mb-4 mb-md-0">
               <h3>Contact Us</h3>
-              <div class="footer-social">
+              <div className="footer-social">
                 <a href="#" className="items-center text-white hover:text-blue-700">
                   <FaFacebookF  className="relative top-3 left-3"/>
                 </a>
@@ -94,10 +94,10 @@ const Footer3 = () => {
             </div>
           </div>
 
-          <div class="row text-center">
-            <div class="col-12">
-              <p class="copyright">
-                <small class="block">
+          <div className="row text-center">
+            <div className="col-12">
+              <p className="copyright">
+                <small className="block">
                   {/* <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --> */}
                   Copyright &copy; 2022 All rights reserved  | This template is
                   made with by{" "}

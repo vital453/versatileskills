@@ -23,6 +23,8 @@ module.exports = {
         'icon-color2': '#007bff',
         'deep_sky_blue': 'rgb(0, 191, 255)',
         'alice_blue-color2': 'rgb(240, 248, 255)',
+        'background1': 'rgb(245, 245, 245)',
+        'noir_epais': 'rgb(17, 17, 177)',
       },
       borderWidth: {
         1: '1px',

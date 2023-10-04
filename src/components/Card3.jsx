@@ -13,27 +13,27 @@ import { BsPatchCheckFill } from "react-icons/bs";
 const Card3 = ({ nom, image }) => {
   return (
     <>
-    <div class="post border-1 border-color rounded-lg m-2">
-        <div class="header_post">
+    <div className="post border-1 border-color rounded-lg m-2">
+        <div className="header_post">
             <img src={`https://backend-shop.benindigital.com/${image}`} alt="" />
         </div>
 
-        <div class="body_post">
-            <div class="post_content">
+        <div className="body_post">
+            <div className="post_content">
 
                 <h1>Lorem ipsum</h1>
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Adipisci animi assumenda cumque deserunt
                     dolorum ex exercitationem.</p>
 
-                <div class="container_infos">
-                    <div class="postedBy">
+                <div className="container_infos">
+                    <div className="postedBy">
                         <span>{nom}</span>
                         John Doe
                     </div>
 
-                    <div class="container_tags">
+                    <div className="container_tags">
                         <span>tags</span>
-                        <div class="tags">
+                        <div className="tags">
                             <ul>
                                 <li>design</li>
                                 <li>front end</li>

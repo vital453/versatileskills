@@ -12,13 +12,15 @@ import React from "react";
 import Navbar_model1 from "../components/Navbar_model1";
 import AreaSearch from "../components/AreaSearch";
 import Footer1 from "../components/Footer1";
+import ProfilEx from "../components/accueil/ProfilEx";
 
 const Acceuil = () => {
   return (
     <>
       <Navbar_model1 />
       <AreaSearch />
-      <Footer1 />
+      <ProfilEx />
+      {/* <Footer1 /> */}
     </>
   );
 };

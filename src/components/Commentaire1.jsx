@@ -11,17 +11,17 @@ const Commentaire1 = () => {
   return (
     <>
       {/* <!-- ***** Contact Us Start ***** --> */}
-      <div class="section colored" id="contact-us">
-        <div class="container">
+      <div className="section colored" id="contact-us">
+        <div className="container">
           {/* <!-- ***** Section Title Start ***** --> */}
-          <div class="row">
-            <div class="col-lg-12">
-              <div class="center-heading">
-                <h2 class="section-title">Parle-nous</h2>
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="center-heading">
+                <h2 className="section-title">Parle-nous</h2>
               </div>
             </div>
-            <div class="offset-lg-3 col-lg-6 mt-4">
-                {/* <div class="center-text">
+            <div className="offset-lg-3 col-lg-6 mt-4">
+                {/* <div className="center-text">
                     <p>
                     Maecenas pellentesque ante faucibus lectus vulputate
                     sollicitudin. Cras feugiat hendrerit semper.
@@ -31,11 +31,11 @@ const Commentaire1 = () => {
           </div>
           {/* <!-- ***** Section Title End ***** --> */}
 
-          <div class="row">
+          <div className="row">
             {/* <!-- ***** Contact Text Start ***** --> */}
-            <div class="col-lg-4 col-md-6 col-sm-12">
-              <h5 class="margin-bottom-30">Rester en contact</h5>
-              <div class="contact-text">
+            <div className="col-lg-4 col-md-6 col-sm-12">
+              <h5 className="margin-bottom-30">Rester en contact</h5>
+              <div className="contact-text">
                 <p>
                 Addresse
                   <br />
@@ -49,52 +49,52 @@ const Commentaire1 = () => {
             {/* <!-- ***** Contact Text End ***** --> */}
 
             {/* <!-- ***** Contact Form Start ***** --> */}
-            <div class="col-lg-8 col-md-6 col-sm-12">
-              <div class="contact-form">
+            <div className="col-lg-8 col-md-6 col-sm-12">
+              <div className="contact-form">
                 <form id="contact" action="" method="get">
-                  <div class="row">
-                    <div class="col-lg-6 col-md-12 col-sm-12">
+                  <div className="row">
+                    <div className="col-lg-6 col-md-12 col-sm-12">
                       <fieldset>
                         <input
                           name="name"
                           type="text"
-                          class="form-control border-2 bg-white"
+                          className="form-control border-2 bg-white"
                           id="name"
                           placeholder="Name"
                           required=""
                         />
                       </fieldset>
                     </div>
-                    <div class="col-lg-6 col-md-12 col-sm-12">
+                    <div className="col-lg-6 col-md-12 col-sm-12">
                       <fieldset>
                         <input
                           name="email"
                           type="email"
-                          class="form-control border-2 bg-white"
+                          className="form-control border-2 bg-white"
                           id="email"
                           placeholder="E-Mail Address"
                           required=""
                         />
                       </fieldset>
                     </div>
-                    <div class="col-lg-12">
+                    <div className="col-lg-12">
                       <fieldset>
                         <textarea
                           name="message"
                           rows="6"
-                          class="form-control border-2 bg-white"
+                          className="form-control border-2 bg-white"
                           id="message"
                           placeholder="Ton Message"
                           required=""
                         ></textarea>
                       </fieldset>
                     </div>
-                    <div class="col-lg-12">
+                    <div className="col-lg-12">
                       <fieldset>
                         <button
                           type="submit"
                           id="form-submit"
-                          class="main-button"
+                          className="main-button"
                         >
                           Send Message
                         </button>
